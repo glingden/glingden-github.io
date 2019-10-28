@@ -1,9 +1,3 @@
-/*
-  Theme Name: Ganga
-  Theme URL: https://bootstrapmade.com/devfolio-bootstrap-portfolio-html-template/
-  Author: BootstrapMade.com
-  License: https://bootstrapmade.com/license/
-*/
 
 /*======================================
 //--//-->   STYLES GENERALES
@@ -865,6 +859,9 @@ a:hover {
   background-color:#dfdbdb;
 }
 
+.col-md-4{
+  margin-bottom: 30px;
+}
 
 
 /*======================================

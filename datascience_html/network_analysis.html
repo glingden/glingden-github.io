@@ -11775,7 +11775,9 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h3 id="Network-Analysis-of-Protein-Protein-Interaction">Network Analysis of Protein-Protein Interaction<a class="anchor-link" href="#Network-Analysis-of-Protein-Protein-Interaction">&#182;</a></h3>
+<h3 id="Network-Analysis-of-Protein-Protein-Interaction">Network Analysis of Protein-Protein Interaction<a class="anchor-link" href="#Network-Analysis-of-Protein-Protein-Interaction">&#182;</a></h3><p>In this mini-project, Protein-Protein interaction behaviours are analysed and find the protein that change in its status has potentially the biggest effect on the rest of the network.
+Please, use this notebook and report file(avaiable in github) for better understaing.</p>
+
 </div>
 </div>
 </div>
@@ -12542,6 +12544,18 @@ Average degree:   1.8328
 </div>
 </div>
 
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Conclusion:">Conclusion:<a class="anchor-link" href="#Conclusion:">&#182;</a></h3><p>The diameter of LC was 18, which tells that this is the longest path of all the calculated shortest path in the network between one node to far another node. This depicts the linear size of the network (g). The centre of LC was found ['W02D3.9'] protein and the number of clique communities with 3 nodes was 31.</p>
+<p>The protein that has the biggest effect in the network while chaining its status, the three centrality measures (degree of centrality, Eigenvector centrality and betweenness centrality ) were performed. In the LC, the protein - 'F58A4.3’ was observed for degree of centrality and eigenvector centrality while the protein - 'W02D3.9' was found as the betweenness centrality.
+The degree of centrality tells only about how many edges connected to a node i.e. node of the highest degree network, no matter how importance are neighbouring nodes. It doesn’t take care about it.</p>
+<p>Unlike degree of centrality, eigenvector centrality measures the node with highest degree along the importance of neighbouring nodes. The betweenness centrality shows the important node where the majority information passes through it . Thus, 'W02D3.9' is the protein in LC that has the maximum influence in the network when changes happen in it because it is in critical node where the interaction (information) between one to another group of nodes (proteins) in LC pass through it. Thus, incase it goes inactive there is no flow of information between group of nodes in network.</p>
+
+</div>
+</div>
 </div>
     </div>
   </div>

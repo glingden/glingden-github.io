@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8" />
-<title>web_scrap</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>ganga_exercise_4</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 
 <style type="text/css">
@@ -11775,76 +11775,25 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h3 id="Web-Scraping-using-Beautiful-Soup">Web Scraping using Beautiful Soup<a class="anchor-link" href="#Web-Scraping-using-Beautiful-Soup">&#182;</a></h3><p>In this project, the top five resturants in the helsinki region are suggested based to the certain criterias such as 1) rating 2) reviews 3) distance from center  and 4) payment accept with card or not. The data are scrapped with beautiful soup  from  yelp website. You can find report file in github for better understanding.</p>
+<h3 id="Soil-water-permeability-prediction-using-Knn-regression">Soil water permeability prediction using Knn regression<a class="anchor-link" href="#Soil-water-permeability-prediction-using-Knn-regression">&#182;</a></h3><p>In this assignment, the special cross-validation method- spatial leave-one-out  is applied for spatial dataset. The knn regression(from scratch) is used to predict the soil water permeability. And, the  c-index value is used  as metric for model performance.</p>
+<p>The reason why to validate the model perfomance with spatial leave-one-out is that the closer such data points, they share the similar properties. Thus, it violates IID assumption and there is chance of leakage of information. This leads the model with greater prediction score but not in reality.</p>
 
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[58]:</div>
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#import necessary libraries</span>
-<span class="kn">from</span> <span class="nn">bs4</span> <span class="k">import</span> <span class="n">BeautifulSoup</span>
-<span class="kn">from</span> <span class="nn">urllib</span> <span class="k">import</span> <span class="n">request</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># import necessary libraries</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span>  <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">operator</span>
+<span class="kn">from</span> <span class="nn">numba</span> <span class="k">import</span> <span class="n">autojit</span> <span class="c1">#for fast compling</span>
 </pre></div>
 
 </div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[675]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># request to the yelp website</span>
-<span class="c1"># collect url to each resturants</span>
-<span class="c1"># 30 items in each page, and total 2 page, so iterate 2 times</span>
-
-<span class="n">base_url</span> <span class="o">=</span> <span class="s1">&#39;https://www.yelp.com&#39;</span>
-<span class="n">items_num</span> <span class="o">=</span>  <span class="p">[</span><span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="s1">&#39;30&#39;</span><span class="p">]</span>
-<span class="n">total_url</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1">#initialize for storing total url</span>
-<span class="n">total_data</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># initialize for storing  resturant information</span>
-
-<span class="c1">#Scrap each resturant url</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">items_num</span><span class="p">:</span>
-    <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://www.yelp.com/search?find_desc=Restaurants+-+Breakfast+%26+Brunch&amp;find_loc=Helsinki,+Finland&amp;start=&#39;</span><span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="s1">&#39;&amp;cflt=breakfast_brunch&amp;attrs=RestaurantsPriceRange2.1,RestaurantsPriceRange2.2,BusinessAcceptsCreditCards&#39;</span>
-    <span class="n">source</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">)</span> 
-    <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span><span class="s2">&quot;html.parser&quot;</span> <span class="p">)</span> <span class="c1"># creates beautiful soup object</span>
-    <span class="n">resturant_url</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;nowrap&#39;</span><span class="p">})</span>  <span class="c1"># extract without base url</span>
-    <span class="c1">#total_url.append([base_url + l.get(&#39;href&#39;) for l in resturant_url])</span>
-    
-    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">resturant_url</span><span class="p">:</span>
-        <span class="n">total_url</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">base_url</span> <span class="o">+</span> <span class="n">l</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;href&#39;</span><span class="p">))</span> <span class="c1"># concatenate base url with extracted url  </span>
-    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">1.5</span><span class="p">)</span>
-<span class="nb">print</span> <span class="p">(</span><span class="n">total_url</span><span class="p">)</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-<div class="prompt"></div>
-
-
-<div class="output_subarea output_stream output_stdout output_text">
-<pre>[&#39;https://www.yelp.com/biz/fleuriste-helsinki?hrid=N5oCBxMdtTGQulGwrvA0FQ&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/sis-deli-ja-cafe-helsinki-2?hrid=NmlEi0zAoTe8cm08B8n7wg&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/caf%C3%A9-daja-helsinki?hrid=1PBB9N6DVCqLOgDqZsgjtQ&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/caf%C3%A9-engel-helsinki-2?hrid=x8zdapfION1IAdQZRrs-PA&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/la-torrefazione-helsinki?hrid=lH-pbE6mwsGkIzyyuwAqkg&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/moko-market-ja-cafe-helsinki?hrid=Vq6Kn7-ZvTa2k5yfkao-5w&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/karl-fazer-caf%C3%A9-helsinki-2?hrid=WeWnTp9e6i5KX7dOQKcT2g&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/tin-tin-tango-helsinki?hrid=MlQkfSM7pzWHyqVaS3K6lQ&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/cargo-helsinki-2?hrid=OH5tSihjMVKHDB2DP_1HqQ&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/deli-cafe-maya-helsinki?hrid=Xj1ijjSJzBzQypUA4bV-MQ&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/piritta-helsinki?hrid=eeDWYpwu_TPG0wfiIZRf9A&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/factory-helsinki-5?hrid=Q5BEzxiv-lt5yysUO1fwAg&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/cardemumma-helsinki-2?hrid=2Rv3JAvldtjxpR5wGZ7qYg&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/ursula-helsinki?hrid=oD8y3z68kc_XTmBqPifjaA&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/dylan-helsinki-10?hrid=qXeLvPhH0WhuGdL2BW0R1A&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/sis-deli-ja-cafe-helsinki-3?hrid=rR0UHmKqSu0oYYMyC3eRbg&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/sandro-helsinki-2?hrid=i5yf40NjazrwTVBhtVqE6g&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/birgitta-helsinki?hrid=9aQ5FuRhzaoFpT8ff9Nz0A&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/factory-helsinki-7?hrid=wDuRk12d1XSfal3CVpVqvg&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/siltanen-helsinki?hrid=fc3FlcHYL5qUiBXZXVigdQ&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/mau-kas-espoo?hrid=SPrSLIwv1JtrZd3t2JTuJA&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/bakers-helsinki?hrid=Z4oarShjc6mSCXsgjaCwjQ&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/sandro-helsinki-3?hrid=--QWREVjrNBduIIj67FspA&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/dylan-milk-helsinki?hrid=q5YyBhBTzOiikgvh2GyMpw&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/ipi-kulmakuppila-helsinki?hrid=UsErIdpjaiCFn77klWCYuw&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/moko-market-helsinki?hrid=31BSwRQXYbkf3KcgOs43HA&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;, &#39;https://www.yelp.com/biz/hima-ja-sali-helsinki-3?hrid=v7NBVPGaBoElnBF2n-diLQ&amp;osq=Restaurants+-+Breakfast+%26+Brunch&#39;]
-</pre>
-</div>
-</div>
-
 </div>
 </div>
 
@@ -11853,85 +11802,36 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>====== Extract information from each  url ==========</p>
+<p>=== load dataset ===</p>
 
 </div>
 </div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#function to load dataset</span>
+<span class="k">def</span> <span class="nf">load_dataset</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">df</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
 <div class="prompt input_prompt">In&nbsp;[5]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Resturant_name, Rating, Review, Price_range, Saturday, Sunday, Accept_credit_card, Distance(km) are extracted. </span>
-
-<span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">from</span> <span class="nn">geopy.distance</span> <span class="k">import</span>  <span class="n">great_circle</span>
-<span class="n">center_point</span> <span class="o">=</span> <span class="p">(</span><span class="mf">60.171945</span><span class="p">,</span> <span class="mf">24.941400</span><span class="p">)</span> <span class="c1"># Kaivokatu 1, 00101 Helsinki in lattitude and longitude taken as center point</span>
-
-
-
-<span class="c1"># iterates over total_url list</span>
-<span class="k">for</span> <span class="n">each_url</span> <span class="ow">in</span> <span class="n">total_url</span><span class="p">:</span>
-    <span class="n">resturant_data</span><span class="o">=</span> <span class="p">{}</span> <span class="c1"># each resturant informatio store as dictionary</span>
-    <span class="n">source</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">each_url</span><span class="p">)</span>
-    <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="s1">&#39;html.parser&#39;</span><span class="p">)</span>
-    
-    <span class="c1"># search resturant name</span>
-    <span class="n">Resturant_name</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;h1&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;biz-page-title embossed-text-white shortenough&#39;</span><span class="p">})</span>
-    <span class="k">if</span> <span class="n">Resturant_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="c1">#check None type</span>
-        <span class="n">resturant_data</span><span class="p">[</span><span class="s1">&#39;Resturant_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Resturant_name</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="c1"># assign resturant name</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">resturant_data</span><span class="p">[</span><span class="s1">&#39;Resturant_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Empty&#39;</span>
-        
-    <span class="c1"># search resturant rating</span>
-    <span class="n">Rating</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;class&#39;</span> <span class="p">:</span> <span class="s1">&#39;offscreen&#39;</span><span class="p">})</span>
-    <span class="k">if</span> <span class="n">Rating</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="c1">#check None type</span>
-        <span class="n">resturant_data</span><span class="p">[</span><span class="s1">&#39;Rating&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">Rating</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;alt&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span> <span class="c1"># assign rating</span>
-        
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">resturant_data</span><span class="p">[</span><span class="s1">&#39;Rating&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Empty&#39;</span>
-        
-        
-    <span class="c1"># find review    </span>
-    <span class="n">Review</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;span&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;class&#39;</span> <span class="p">:</span><span class="s1">&#39;review-count rating-qualifier&#39;</span><span class="p">})</span>
-    <span class="k">if</span> <span class="n">Review</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span><span class="c1"># check none type</span>
-        <span class="n">resturant_data</span><span class="p">[</span><span class="s1">&#39;Review&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">Review</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span> <span class="c1"># assign review</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">resturant_data</span><span class="p">[</span><span class="s1">&#39;Review&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Empty&#39;</span>
-        
-    <span class="c1">#search price range    </span>
-    <span class="n">Price_range</span> <span class="o">=</span>  <span class="n">soup</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;dd&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span><span class="s1">&#39;nowrap price-description&#39;</span><span class="p">})</span>
-    <span class="k">if</span> <span class="n">Price_range</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># check non type</span>
-        <span class="n">resturant_data</span><span class="p">[</span><span class="s1">&#39;Price_range(€)&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Price_range</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;€&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="c1"># assign price range</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">resturant_data</span><span class="p">[</span><span class="s1">&#39;Price_range(€)&#39;</span><span class="p">]</span><span class="o">=</span> <span class="s1">&#39;Empty&#39;</span>
-        
-    <span class="c1"># check resturant open on saturday or not</span>
-    <span class="n">Saturday</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;th&#39;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Sat&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">Saturday</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># check none type</span>
-        <span class="n">resturant_data</span><span class="p">[</span><span class="s1">&#39;Saturday&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Saturday</span><span class="o">.</span><span class="n">find_next_sibling</span><span class="p">(</span><span class="s1">&#39;td&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="c1"># assing operning time</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">resturant_data</span><span class="p">[</span><span class="s1">&#39;Saturday&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Empty&#39;</span>
-        
-    <span class="c1"># check resturant open on sunday or not</span>
-    <span class="n">Sunday</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;th&#39;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Sun&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">Sunday</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># check non type</span>
-        <span class="n">resturant_data</span><span class="p">[</span><span class="s1">&#39;Sunday&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Sunday</span><span class="o">.</span><span class="n">find_next_sibling</span><span class="p">(</span><span class="s1">&#39;td&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="c1"># assing operning time</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">resturant_data</span><span class="p">[</span><span class="s1">&#39;Sunday&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Empty&#39;</span>
-        
-    <span class="c1"># check resturant accept credit card    </span>
-    <span class="n">resturant_data</span><span class="p">[</span><span class="s1">&#39;Accept_credit_card&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;div&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;short-def-list&#39;</span><span class="p">})</span><span class="o">.</span><span class="n">dd</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-    
-    <span class="c1">#find the resturant distance from center point</span>
-    <span class="c1"># first get latitude and longitude  and  used &#39;great_circle&#39; function to calculates distance </span>
-    <span class="n">restur_lat_lon</span> <span class="o">=</span> <span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">soup</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;div&#39;</span><span class="p">,{</span><span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;lightbox-map hidden&#39;</span><span class="p">})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data-map-state&#39;</span><span class="p">)))[</span><span class="s1">&#39;center&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="c1"># take latitude and longitude of each resturant</span>
-    <span class="n">resturant_data</span><span class="p">[</span><span class="s1">&#39;Distance(km)&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">great_circle</span><span class="p">(</span><span class="n">center_point</span><span class="p">,</span><span class="n">restur_lat_lon</span><span class="p">)</span><span class="o">.</span><span class="n">km</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="c1"># calculate and assign distance</span>
-    <span class="n">total_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">resturant_data</span><span class="p">)</span> <span class="c1"># append  &#39;resturant_data&#39; to &#39;total_data&#39;</span>
-    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># sleep for 2 second, since we are doing  url request quite often here. so to avoide from being block.</span>
-      
-<span class="nb">print</span><span class="p">(</span><span class="n">total_data</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#run load_dataset</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">load_dataset</span><span class="p">(</span><span class="s1">&#39;Dataset/INPUT.csv&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Dimension of dataframe:&#39;</span><span class="p">,</span> <span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -11948,48 +11848,14 @@ div#notebook {
 
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>[{&#39;Resturant_name&#39;: &#39;Fleuriste&#39;, &#39;Rating&#39;: 4.5, &#39;Review&#39;: 20, &#39;Price_range(€)&#39;: &#39;13-21&#39;, &#39;Saturday&#39;: &#39;10:00 am - 5:00 pm&#39;, &#39;Sunday&#39;: &#39;Closed&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 0.81}, {&#39;Resturant_name&#39;: &#39;SIS. Deli &amp; Cafe&#39;, &#39;Rating&#39;: 4.5, &#39;Review&#39;: 17, &#39;Price_range(€)&#39;: &#39;13-21&#39;, &#39;Saturday&#39;: &#39;9:00 am - 4:00 pm&#39;, &#39;Sunday&#39;: &#39;9:00 am - 4:00 pm&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 0.49}, {&#39;Resturant_name&#39;: &#39;Café DaJa&#39;, &#39;Rating&#39;: 4.5, &#39;Review&#39;: 10, &#39;Price_range(€)&#39;: &#39;13-21&#39;, &#39;Saturday&#39;: &#39;9:00 am - 6:00 pm&#39;, &#39;Sunday&#39;: &#39;9:00 am - 6:00 pm&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 0.86}, {&#39;Resturant_name&#39;: &#39;Café Engel&#39;, &#39;Rating&#39;: 4.0, &#39;Review&#39;: 29, &#39;Price_range(€)&#39;: &#39;13-21&#39;, &#39;Saturday&#39;: &#39;9:00 am - 9:00 pm&#39;, &#39;Sunday&#39;: &#39;10:00 am - 7:00 pm&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 0.65}, {&#39;Resturant_name&#39;: &#39;La Torrefazione&#39;, &#39;Rating&#39;: 4.0, &#39;Review&#39;: 39, &#39;Price_range(€)&#39;: &#39;13-21&#39;, &#39;Saturday&#39;: &#39;9:00 am - 7:00 pm&#39;, &#39;Sunday&#39;: &#39;10:00 am - 6:30 pm&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 0.37}, {&#39;Resturant_name&#39;: &#39;Moko Market &amp; Cafe&#39;, &#39;Rating&#39;: 4.5, &#39;Review&#39;: 4, &#39;Price_range(€)&#39;: &#39;13-21&#39;, &#39;Saturday&#39;: &#39;10:00 am - 3:00 pm&#39;, &#39;Sunday&#39;: &#39;Closed&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 2.16}, {&#39;Resturant_name&#39;: &#39;Karl Fazer Café&#39;, &#39;Rating&#39;: 4.0, &#39;Review&#39;: 91, &#39;Price_range(€)&#39;: &#39;13-21&#39;, &#39;Saturday&#39;: &#39;9:00 am - 10:00 pm&#39;, &#39;Sunday&#39;: &#39;10:00 am - 6:00 pm&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 0.5}, {&#39;Resturant_name&#39;: &#39;Tin Tin Tango&#39;, &#39;Rating&#39;: 4.0, &#39;Review&#39;: 29, &#39;Price_range(€)&#39;: &#39;13-21&#39;, &#39;Saturday&#39;: &#39;9:00 am - 12:00 am&#39;, &#39;Sunday&#39;: &#39;10:00 am - 9:00 pm&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 1.16}, {&#39;Resturant_name&#39;: &#39;Cargo&#39;, &#39;Rating&#39;: 4.5, &#39;Review&#39;: 7, &#39;Price_range(€)&#39;: &#39;13-21&#39;, &#39;Saturday&#39;: &#39;10:00 am - 10:00 pm&#39;, &#39;Sunday&#39;: &#39;10:00 am - 4:00 pm&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 1.45}, {&#39;Resturant_name&#39;: &#39;Deli Cafe Maya&#39;, &#39;Rating&#39;: 4.0, &#39;Review&#39;: 11, &#39;Price_range(€)&#39;: &#39;Under 12&#39;, &#39;Saturday&#39;: &#39;Closed&#39;, &#39;Sunday&#39;: &#39;11:00 am - 3:00 pm&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 1.16}, {&#39;Resturant_name&#39;: &#39;Piritta&#39;, &#39;Rating&#39;: 4.0, &#39;Review&#39;: 17, &#39;Price_range(€)&#39;: &#39;13-21&#39;, &#39;Saturday&#39;: &#39;9:00 am - 10:00 pm&#39;, &#39;Sunday&#39;: &#39;9:00 am - 8:00 pm&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 0.96}, {&#39;Resturant_name&#39;: &#39;Factory&#39;, &#39;Rating&#39;: 3.5, &#39;Review&#39;: 11, &#39;Price_range(€)&#39;: &#39;Under 12&#39;, &#39;Saturday&#39;: &#39;9:00 am - 6:00 pm&#39;, &#39;Sunday&#39;: &#39;Closed&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 0.42}, {&#39;Resturant_name&#39;: &#39;Cardemumma&#39;, &#39;Rating&#39;: 3.5, &#39;Review&#39;: 17, &#39;Price_range(€)&#39;: &#39;13-21&#39;, &#39;Saturday&#39;: &#39;10:00 am - 3:00 pm&#39;, &#39;Sunday&#39;: &#39;Closed&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 1.72}, {&#39;Resturant_name&#39;: &#39;Ursula&#39;, &#39;Rating&#39;: 4.0, &#39;Review&#39;: 28, &#39;Price_range(€)&#39;: &#39;13-21&#39;, &#39;Saturday&#39;: &#39;9:00 am - 10:00 pm&#39;, &#39;Sunday&#39;: &#39;9:00 am - 6:00 pm&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 2.16}, {&#39;Resturant_name&#39;: &#39;Dylan&#39;, &#39;Rating&#39;: 4.0, &#39;Review&#39;: 13, &#39;Price_range(€)&#39;: &#39;13-21&#39;, &#39;Saturday&#39;: &#39;11:30 am - 2:00 pm&#39;, &#39;Sunday&#39;: &#39;11:30 am - 4:30 pm&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 4.86}, {&#39;Resturant_name&#39;: &#39;SIS. Deli &amp; Cafe&#39;, &#39;Rating&#39;: 4.0, &#39;Review&#39;: 5, &#39;Price_range(€)&#39;: &#39;13-21&#39;, &#39;Saturday&#39;: &#39;9:00 am - 4:00 pm&#39;, &#39;Sunday&#39;: &#39;9:00 am - 4:00 pm&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 1.28}, {&#39;Resturant_name&#39;: &#39;Sandro&#39;, &#39;Rating&#39;: 4.0, &#39;Review&#39;: 12, &#39;Price_range(€)&#39;: &#39;13-21&#39;, &#39;Saturday&#39;: &#39;10:00 am - 12:00 am&#39;, &#39;Sunday&#39;: &#39;10:00 am - 11:00 pm&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 1.61}, {&#39;Resturant_name&#39;: &#39;Birgitta&#39;, &#39;Rating&#39;: 4.0, &#39;Review&#39;: 19, &#39;Price_range(€)&#39;: &#39;13-21&#39;, &#39;Saturday&#39;: &#39;9:00 am - 10:00 pm&#39;, &#39;Sunday&#39;: &#39;9:00 am - 10:00 pm&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 2.11}, {&#39;Resturant_name&#39;: &#39;Factory&#39;, &#39;Rating&#39;: 3.5, &#39;Review&#39;: 2, &#39;Price_range(€)&#39;: &#39;Under 12&#39;, &#39;Saturday&#39;: &#39;Closed&#39;, &#39;Sunday&#39;: &#39;Closed&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 5.37}, {&#39;Resturant_name&#39;: &#39;Siltanen&#39;, &#39;Rating&#39;: 3.5, &#39;Review&#39;: 17, &#39;Price_range(€)&#39;: &#39;13-21&#39;, &#39;Saturday&#39;: &#39;11:00 am - 3:00 am&#39;, &#39;Sunday&#39;: &#39;Closed&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 1.71}, {&#39;Resturant_name&#39;: &#39;Mau Kas&#39;, &#39;Rating&#39;: 4.5, &#39;Review&#39;: 4, &#39;Price_range(€)&#39;: &#39;Under 12&#39;, &#39;Saturday&#39;: &#39;Closed&#39;, &#39;Sunday&#39;: &#39;Closed&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 6.61}, {&#39;Resturant_name&#39;: &#39;Baker’s&#39;, &#39;Rating&#39;: 3.5, &#39;Review&#39;: 16, &#39;Price_range(€)&#39;: &#39;13-21&#39;, &#39;Saturday&#39;: &#39;9:00 am - 4:00 am&#39;, &#39;Sunday&#39;: &#39;Closed&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 0.43}, {&#39;Resturant_name&#39;: &#39;Sandro&#39;, &#39;Rating&#39;: 4.0, &#39;Review&#39;: 4, &#39;Price_range(€)&#39;: &#39;13-21&#39;, &#39;Saturday&#39;: &#39;Empty&#39;, &#39;Sunday&#39;: &#39;Empty&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 0.54}, {&#39;Resturant_name&#39;: &#39;Dylan Milk&#39;, &#39;Rating&#39;: 2.5, &#39;Review&#39;: 2, &#39;Price_range(€)&#39;: &#39;13-21&#39;, &#39;Saturday&#39;: &#39;Closed&#39;, &#39;Sunday&#39;: &#39;Closed&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 1.96}, {&#39;Resturant_name&#39;: &#39;IPI Kulmakuppila&#39;, &#39;Rating&#39;: 3.5, &#39;Review&#39;: 6, &#39;Price_range(€)&#39;: &#39;13-21&#39;, &#39;Saturday&#39;: &#39;10:00 am - 5:00 pm&#39;, &#39;Sunday&#39;: &#39;Closed&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 1.43}, {&#39;Resturant_name&#39;: &#39;Moko Market&#39;, &#39;Rating&#39;: 3.5, &#39;Review&#39;: 21, &#39;Price_range(€)&#39;: &#39;13-21&#39;, &#39;Saturday&#39;: &#39;10:00 am - 5:00 pm&#39;, &#39;Sunday&#39;: &#39;Closed&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 1.52}, {&#39;Resturant_name&#39;: &#39;Empty&#39;, &#39;Rating&#39;: 4.0, &#39;Review&#39;: 9, &#39;Price_range(€)&#39;: &#39;Under 12&#39;, &#39;Saturday&#39;: &#39;12:00 pm - 7:00 pm&#39;, &#39;Sunday&#39;: &#39;12:00 pm - 7:00 pm&#39;, &#39;Accept_credit_card&#39;: &#39;Yes&#39;, &#39;Distance(km)&#39;: 2.4}]
-</pre>
-</div>
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[51]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#show the extracted data in dataframe</span>
-<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">total_data</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Dimension of data:&#39;</span><span class="p">,</span> <span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="c1"># give no. of rows and columns in tuple form</span>
-<span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-<div class="prompt"></div>
-
-
-<div class="output_subarea output_stream output_stdout output_text">
-<pre>Dimension of data: (27, 8)
+<pre>Dimension of dataframe: (1691, 95)
 </pre>
 </div>
 </div>
 
 <div class="output_area">
 
-<div class="prompt output_prompt">Out[51]:</div>
+<div class="prompt output_prompt">Out[5]:</div>
 
 
 
@@ -12012,74 +11878,610 @@ div#notebook {
   <thead>
     <tr style="text-align: right;">
       <th></th>
-      <th>Accept_credit_card</th>
-      <th>Distance(km)</th>
-      <th>Price_range(€)</th>
-      <th>Rating</th>
-      <th>Resturant_name</th>
-      <th>Review</th>
-      <th>Saturday</th>
-      <th>Sunday</th>
+      <th>0</th>
+      <th>1</th>
+      <th>2</th>
+      <th>3</th>
+      <th>4</th>
+      <th>5</th>
+      <th>6</th>
+      <th>7</th>
+      <th>8</th>
+      <th>9</th>
+      <th>...</th>
+      <th>85</th>
+      <th>86</th>
+      <th>87</th>
+      <th>88</th>
+      <th>89</th>
+      <th>90</th>
+      <th>91</th>
+      <th>92</th>
+      <th>93</th>
+      <th>94</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <th>0</th>
-      <td>Yes</td>
-      <td>0.81</td>
-      <td>13-21</td>
-      <td>4.5</td>
-      <td>Fleuriste</td>
-      <td>20</td>
-      <td>10:00 am - 5:00 pm</td>
-      <td>Closed</td>
+      <td>0</td>
+      <td>464</td>
+      <td>537</td>
+      <td>139</td>
+      <td>53</td>
+      <td>35</td>
+      <td>294</td>
+      <td>1151</td>
+      <td>236</td>
+      <td>211</td>
+      <td>...</td>
+      <td>0.2222</td>
+      <td>0.2222</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>295.07</td>
+      <td>-0.0001</td>
+      <td>2.3657</td>
+      <td>0.0171</td>
+      <td>0.0347</td>
     </tr>
     <tr>
       <th>1</th>
-      <td>Yes</td>
-      <td>0.49</td>
-      <td>13-21</td>
-      <td>4.5</td>
-      <td>SIS. Deli &amp; Cafe</td>
-      <td>17</td>
-      <td>9:00 am - 4:00 pm</td>
-      <td>9:00 am - 4:00 pm</td>
+      <td>0</td>
+      <td>328</td>
+      <td>404</td>
+      <td>107</td>
+      <td>38</td>
+      <td>36</td>
+      <td>211</td>
+      <td>848</td>
+      <td>392</td>
+      <td>475</td>
+      <td>...</td>
+      <td>0.2222</td>
+      <td>0.1111</td>
+      <td>0.0000</td>
+      <td>0.4444</td>
+      <td>0.0000</td>
+      <td>257.99</td>
+      <td>-0.0002</td>
+      <td>0.7365</td>
+      <td>0.0088</td>
+      <td>0.0347</td>
     </tr>
     <tr>
       <th>2</th>
-      <td>Yes</td>
-      <td>0.86</td>
-      <td>13-21</td>
-      <td>4.5</td>
-      <td>Café DaJa</td>
-      <td>10</td>
-      <td>9:00 am - 6:00 pm</td>
-      <td>9:00 am - 6:00 pm</td>
+      <td>1</td>
+      <td>182</td>
+      <td>219</td>
+      <td>56</td>
+      <td>21</td>
+      <td>36</td>
+      <td>116</td>
+      <td>437</td>
+      <td>108</td>
+      <td>128</td>
+      <td>...</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>254.19</td>
+      <td>-0.0003</td>
+      <td>2.9106</td>
+      <td>0.0671</td>
+      <td>-4.1155</td>
     </tr>
     <tr>
       <th>3</th>
-      <td>Yes</td>
-      <td>0.65</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Café Engel</td>
-      <td>29</td>
-      <td>9:00 am - 9:00 pm</td>
-      <td>10:00 am - 7:00 pm</td>
+      <td>0</td>
+      <td>206</td>
+      <td>268</td>
+      <td>64</td>
+      <td>27</td>
+      <td>24</td>
+      <td>145</td>
+      <td>564</td>
+      <td>253</td>
+      <td>329</td>
+      <td>...</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>253.84</td>
+      <td>0.0004</td>
+      <td>3.0498</td>
+      <td>0.0658</td>
+      <td>-4.3973</td>
     </tr>
     <tr>
       <th>4</th>
-      <td>Yes</td>
-      <td>0.37</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>La Torrefazione</td>
-      <td>39</td>
-      <td>9:00 am - 7:00 pm</td>
-      <td>10:00 am - 6:30 pm</td>
+      <td>0</td>
+      <td>99</td>
+      <td>114</td>
+      <td>30</td>
+      <td>10</td>
+      <td>26</td>
+      <td>58</td>
+      <td>232</td>
+      <td>265</td>
+      <td>230</td>
+      <td>...</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>0.3333</td>
+      <td>0.2222</td>
+      <td>0.2222</td>
+      <td>257.65</td>
+      <td>-0.0001</td>
+      <td>2.0997</td>
+      <td>0.0303</td>
+      <td>-0.9330</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>0</td>
+      <td>384</td>
+      <td>465</td>
+      <td>114</td>
+      <td>47</td>
+      <td>45</td>
+      <td>272</td>
+      <td>974</td>
+      <td>157</td>
+      <td>102</td>
+      <td>...</td>
+      <td>0.2222</td>
+      <td>0.3333</td>
+      <td>0.4444</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>263.46</td>
+      <td>-0.0000</td>
+      <td>3.3676</td>
+      <td>0.0259</td>
+      <td>-1.4700</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>0</td>
+      <td>232</td>
+      <td>278</td>
+      <td>66</td>
+      <td>31</td>
+      <td>59</td>
+      <td>174</td>
+      <td>599</td>
+      <td>43</td>
+      <td>38</td>
+      <td>...</td>
+      <td>0.0000</td>
+      <td>0.3333</td>
+      <td>0.6667</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>264.07</td>
+      <td>-0.0001</td>
+      <td>2.9531</td>
+      <td>0.0215</td>
+      <td>-0.1728</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>0</td>
+      <td>1361</td>
+      <td>1640</td>
+      <td>456</td>
+      <td>142</td>
+      <td>103</td>
+      <td>723</td>
+      <td>3239</td>
+      <td>215</td>
+      <td>171</td>
+      <td>...</td>
+      <td>0.1111</td>
+      <td>0.2222</td>
+      <td>0.4444</td>
+      <td>0.2222</td>
+      <td>0.0000</td>
+      <td>290.28</td>
+      <td>-0.0006</td>
+      <td>2.7972</td>
+      <td>0.1487</td>
+      <td>10.1820</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>0</td>
+      <td>1361</td>
+      <td>1640</td>
+      <td>456</td>
+      <td>142</td>
+      <td>103</td>
+      <td>723</td>
+      <td>3239</td>
+      <td>215</td>
+      <td>171</td>
+      <td>...</td>
+      <td>0.1111</td>
+      <td>0.2222</td>
+      <td>0.4444</td>
+      <td>0.2222</td>
+      <td>0.0000</td>
+      <td>290.28</td>
+      <td>-0.0006</td>
+      <td>2.7972</td>
+      <td>0.1487</td>
+      <td>10.1820</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>0</td>
+      <td>1352</td>
+      <td>1648</td>
+      <td>460</td>
+      <td>145</td>
+      <td>104</td>
+      <td>715</td>
+      <td>3324</td>
+      <td>273</td>
+      <td>192</td>
+      <td>...</td>
+      <td>0.3333</td>
+      <td>0.0000</td>
+      <td>0.3333</td>
+      <td>0.0000</td>
+      <td>0.0000</td>
+      <td>294.45</td>
+      <td>0.0003</td>
+      <td>2.0202</td>
+      <td>0.1524</td>
+      <td>14.0770</td>
     </tr>
   </tbody>
 </table>
+<p>10 rows × 95 columns</p>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>=== normalize data with z-score ====</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[25]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Normalize the data</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">values</span><span class="c1"># change to numpy array</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">T</span><span class="p">)):</span> <span class="c1"># transpose and calcualte &#39;mean&#39; and &#39;stdv&#39; row-wise</span>
+    <span class="n">mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="n">stdv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">))</span> <span class="p">:</span> <span class="c1"># apply z-score in each element of df</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">=</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">mean</span><span class="p">)</span><span class="o">/</span><span class="n">stdv</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>  <span class="c1"># change to pandas dataframe </span>
+<span class="n">data</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> 
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt output_prompt">Out[25]:</div>
+
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>0</th>
+      <th>1</th>
+      <th>2</th>
+      <th>3</th>
+      <th>4</th>
+      <th>5</th>
+      <th>6</th>
+      <th>7</th>
+      <th>8</th>
+      <th>9</th>
+      <th>...</th>
+      <th>85</th>
+      <th>86</th>
+      <th>87</th>
+      <th>88</th>
+      <th>89</th>
+      <th>90</th>
+      <th>91</th>
+      <th>92</th>
+      <th>93</th>
+      <th>94</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1681</th>
+      <td>-0.272641</td>
+      <td>1.184331</td>
+      <td>1.239433</td>
+      <td>1.396467</td>
+      <td>1.111154</td>
+      <td>-0.154838</td>
+      <td>0.817396</td>
+      <td>1.292499</td>
+      <td>-0.336832</td>
+      <td>-0.116215</td>
+      <td>...</td>
+      <td>-0.414092</td>
+      <td>1.247497</td>
+      <td>-0.645254</td>
+      <td>-0.519918</td>
+      <td>-0.447089</td>
+      <td>-0.553792</td>
+      <td>-0.035919</td>
+      <td>4.349409</td>
+      <td>-0.833965</td>
+      <td>-0.920760</td>
+    </tr>
+    <tr>
+      <th>1682</th>
+      <td>-0.272641</td>
+      <td>-1.110957</td>
+      <td>-1.133975</td>
+      <td>-1.080954</td>
+      <td>-1.181823</td>
+      <td>-1.130514</td>
+      <td>-1.219890</td>
+      <td>-1.134568</td>
+      <td>-1.481942</td>
+      <td>-1.216954</td>
+      <td>...</td>
+      <td>2.754642</td>
+      <td>1.247497</td>
+      <td>-0.645254</td>
+      <td>-0.519918</td>
+      <td>-0.447089</td>
+      <td>-0.499910</td>
+      <td>0.333694</td>
+      <td>-0.868387</td>
+      <td>0.491144</td>
+      <td>-1.026513</td>
+    </tr>
+    <tr>
+      <th>1683</th>
+      <td>3.667832</td>
+      <td>-1.052404</td>
+      <td>-1.070028</td>
+      <td>-1.026704</td>
+      <td>-1.101835</td>
+      <td>-1.056878</td>
+      <td>-1.138399</td>
+      <td>-1.070570</td>
+      <td>-1.481942</td>
+      <td>-1.216954</td>
+      <td>...</td>
+      <td>-1.047724</td>
+      <td>1.247497</td>
+      <td>-0.645254</td>
+      <td>-0.519918</td>
+      <td>-0.447089</td>
+      <td>-0.546972</td>
+      <td>-0.651942</td>
+      <td>-0.863753</td>
+      <td>1.172569</td>
+      <td>-1.143825</td>
+    </tr>
+    <tr>
+      <th>1684</th>
+      <td>-0.272641</td>
+      <td>-1.110957</td>
+      <td>-1.133975</td>
+      <td>-1.080954</td>
+      <td>-1.181823</td>
+      <td>-1.130514</td>
+      <td>-1.219890</td>
+      <td>-1.134568</td>
+      <td>-1.481942</td>
+      <td>-1.216954</td>
+      <td>...</td>
+      <td>-0.414092</td>
+      <td>1.955874</td>
+      <td>2.098494</td>
+      <td>0.228921</td>
+      <td>-0.447089</td>
+      <td>-0.523782</td>
+      <td>-0.282329</td>
+      <td>-1.006913</td>
+      <td>-0.911542</td>
+      <td>-0.712998</td>
+    </tr>
+    <tr>
+      <th>1685</th>
+      <td>3.667832</td>
+      <td>-0.908948</td>
+      <td>-0.897864</td>
+      <td>-0.882037</td>
+      <td>-0.995185</td>
+      <td>-0.541427</td>
+      <td>-0.985602</td>
+      <td>-0.977593</td>
+      <td>-1.481942</td>
+      <td>-1.216954</td>
+      <td>...</td>
+      <td>0.853173</td>
+      <td>0.539119</td>
+      <td>-0.645254</td>
+      <td>-0.519918</td>
+      <td>-0.447089</td>
+      <td>-0.543334</td>
+      <td>0.210490</td>
+      <td>-0.641388</td>
+      <td>-0.592845</td>
+      <td>-0.494367</td>
+    </tr>
+    <tr>
+      <th>1686</th>
+      <td>-0.272641</td>
+      <td>-1.110957</td>
+      <td>-1.133975</td>
+      <td>-1.080954</td>
+      <td>-1.181823</td>
+      <td>-1.130514</td>
+      <td>-1.219890</td>
+      <td>-1.134568</td>
+      <td>-1.481942</td>
+      <td>-1.216954</td>
+      <td>...</td>
+      <td>0.219541</td>
+      <td>2.664890</td>
+      <td>-0.645254</td>
+      <td>-0.519918</td>
+      <td>-0.447089</td>
+      <td>-0.510368</td>
+      <td>0.333694</td>
+      <td>-0.605155</td>
+      <td>-0.869609</td>
+      <td>-1.089263</td>
+    </tr>
+    <tr>
+      <th>1687</th>
+      <td>-0.272641</td>
+      <td>-1.110957</td>
+      <td>-1.133975</td>
+      <td>-1.080954</td>
+      <td>-1.181823</td>
+      <td>-1.130514</td>
+      <td>-1.219890</td>
+      <td>-1.134568</td>
+      <td>-1.481942</td>
+      <td>-1.216954</td>
+      <td>...</td>
+      <td>-0.414092</td>
+      <td>1.247497</td>
+      <td>3.013076</td>
+      <td>-0.519918</td>
+      <td>-0.447089</td>
+      <td>2.831260</td>
+      <td>-0.405533</td>
+      <td>1.917122</td>
+      <td>4.751621</td>
+      <td>8.761618</td>
+    </tr>
+    <tr>
+      <th>1688</th>
+      <td>-0.272641</td>
+      <td>0.106951</td>
+      <td>0.130203</td>
+      <td>0.221048</td>
+      <td>0.017990</td>
+      <td>-0.872788</td>
+      <td>-0.094289</td>
+      <td>0.104323</td>
+      <td>-0.682183</td>
+      <td>-0.608471</td>
+      <td>...</td>
+      <td>-1.047724</td>
+      <td>3.373267</td>
+      <td>-0.645254</td>
+      <td>-0.519918</td>
+      <td>-0.447089</td>
+      <td>1.145896</td>
+      <td>1.072921</td>
+      <td>2.184146</td>
+      <td>3.527153</td>
+      <td>2.258910</td>
+    </tr>
+    <tr>
+      <th>1689</th>
+      <td>-0.272641</td>
+      <td>-1.110957</td>
+      <td>-1.133975</td>
+      <td>-1.080954</td>
+      <td>-1.181823</td>
+      <td>-1.130514</td>
+      <td>-1.219890</td>
+      <td>-1.134568</td>
+      <td>-1.481942</td>
+      <td>-1.216954</td>
+      <td>...</td>
+      <td>-0.414092</td>
+      <td>0.539119</td>
+      <td>-0.645254</td>
+      <td>-0.519918</td>
+      <td>-0.447089</td>
+      <td>3.594710</td>
+      <td>-0.405533</td>
+      <td>1.289039</td>
+      <td>4.411957</td>
+      <td>11.258372</td>
+    </tr>
+    <tr>
+      <th>1690</th>
+      <td>-0.272641</td>
+      <td>-1.110957</td>
+      <td>-1.133975</td>
+      <td>-1.080954</td>
+      <td>-1.181823</td>
+      <td>-1.130514</td>
+      <td>-1.219890</td>
+      <td>-1.134568</td>
+      <td>-1.481942</td>
+      <td>-1.216954</td>
+      <td>...</td>
+      <td>0.219541</td>
+      <td>-0.877636</td>
+      <td>-0.645254</td>
+      <td>-0.519918</td>
+      <td>0.756777</td>
+      <td>4.252668</td>
+      <td>0.826512</td>
+      <td>0.515351</td>
+      <td>5.565137</td>
+      <td>12.954723</td>
+    </tr>
+  </tbody>
+</table>
+<p>10 rows × 95 columns</p>
 </div>
 </div>
 
@@ -12091,15 +12493,15 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[52]:</div>
+<div class="prompt input_prompt">In&nbsp;[26]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># lets filter the resturant that  open in weekend, at least 5 reviews, </span>
-<span class="c1">#accept credi card payment, price upto €21</span>
-
-<span class="n">resturant</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Review&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">4</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Saturday&#39;</span><span class="p">]</span><span class="o">!=</span><span class="s1">&#39;Closed&#39;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Sunday&#39;</span><span class="p">]</span><span class="o">!=</span><span class="s1">&#39;Closed&#39;</span><span class="p">),:]</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Dimension of data frame is: &#39;</span><span class="p">,</span> <span class="n">resturant</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="c1"># give no. of rows and columns in tuple form</span>
-<span class="n">resturant</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># another way(normalize) using lambda </span>
+<span class="n">zscore</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">x</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span> <span class="o">/</span> <span class="n">x</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+<span class="n">newdf</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">newdf</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,:]</span> <span class="o">=</span> <span class="n">newdf</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,:]</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">zscore</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># apply funcion to each column</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Data-frame with normalized features:&#39;</span><span class="p">)</span>
+<span class="n">newdf</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -12116,14 +12518,14 @@ div#notebook {
 
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>Dimension of data frame is:  (14, 8)
+<pre>Data-frame with normalized features:
 </pre>
 </div>
 </div>
 
 <div class="output_area">
 
-<div class="prompt output_prompt">Out[52]:</div>
+<div class="prompt output_prompt">Out[26]:</div>
 
 
 
@@ -12146,292 +12548,273 @@ div#notebook {
   <thead>
     <tr style="text-align: right;">
       <th></th>
-      <th>Accept_credit_card</th>
-      <th>Distance(km)</th>
-      <th>Price_range(€)</th>
-      <th>Rating</th>
-      <th>Resturant_name</th>
-      <th>Review</th>
-      <th>Saturday</th>
-      <th>Sunday</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
+      <th>0</th>
       <th>1</th>
-      <td>Yes</td>
-      <td>0.49</td>
-      <td>13-21</td>
-      <td>4.5</td>
-      <td>SIS. Deli &amp; Cafe</td>
-      <td>17</td>
-      <td>9:00 am - 4:00 pm</td>
-      <td>9:00 am - 4:00 pm</td>
-    </tr>
-    <tr>
       <th>2</th>
-      <td>Yes</td>
-      <td>0.86</td>
-      <td>13-21</td>
-      <td>4.5</td>
-      <td>Café DaJa</td>
-      <td>10</td>
-      <td>9:00 am - 6:00 pm</td>
-      <td>9:00 am - 6:00 pm</td>
-    </tr>
-    <tr>
       <th>3</th>
-      <td>Yes</td>
-      <td>0.65</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Café Engel</td>
-      <td>29</td>
-      <td>9:00 am - 9:00 pm</td>
-      <td>10:00 am - 7:00 pm</td>
-    </tr>
-    <tr>
       <th>4</th>
-      <td>Yes</td>
-      <td>0.37</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>La Torrefazione</td>
-      <td>39</td>
-      <td>9:00 am - 7:00 pm</td>
-      <td>10:00 am - 6:30 pm</td>
-    </tr>
-    <tr>
+      <th>5</th>
       <th>6</th>
-      <td>Yes</td>
-      <td>0.50</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Karl Fazer Café</td>
-      <td>91</td>
-      <td>9:00 am - 10:00 pm</td>
-      <td>10:00 am - 6:00 pm</td>
-    </tr>
-    <tr>
       <th>7</th>
-      <td>Yes</td>
-      <td>1.16</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Tin Tin Tango</td>
-      <td>29</td>
-      <td>9:00 am - 12:00 am</td>
-      <td>10:00 am - 9:00 pm</td>
-    </tr>
-    <tr>
       <th>8</th>
-      <td>Yes</td>
-      <td>1.45</td>
-      <td>13-21</td>
-      <td>4.5</td>
-      <td>Cargo</td>
-      <td>7</td>
-      <td>10:00 am - 10:00 pm</td>
-      <td>10:00 am - 4:00 pm</td>
-    </tr>
-    <tr>
-      <th>10</th>
-      <td>Yes</td>
-      <td>0.96</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Piritta</td>
-      <td>17</td>
-      <td>9:00 am - 10:00 pm</td>
-      <td>9:00 am - 8:00 pm</td>
-    </tr>
-    <tr>
-      <th>13</th>
-      <td>Yes</td>
-      <td>2.16</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Ursula</td>
-      <td>28</td>
-      <td>9:00 am - 10:00 pm</td>
-      <td>9:00 am - 6:00 pm</td>
-    </tr>
-    <tr>
-      <th>14</th>
-      <td>Yes</td>
-      <td>4.86</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Dylan</td>
-      <td>13</td>
-      <td>11:30 am - 2:00 pm</td>
-      <td>11:30 am - 4:30 pm</td>
-    </tr>
-    <tr>
-      <th>15</th>
-      <td>Yes</td>
-      <td>1.28</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>SIS. Deli &amp; Cafe</td>
-      <td>5</td>
-      <td>9:00 am - 4:00 pm</td>
-      <td>9:00 am - 4:00 pm</td>
-    </tr>
-    <tr>
-      <th>16</th>
-      <td>Yes</td>
-      <td>1.61</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Sandro</td>
-      <td>12</td>
-      <td>10:00 am - 12:00 am</td>
-      <td>10:00 am - 11:00 pm</td>
-    </tr>
-    <tr>
-      <th>17</th>
-      <td>Yes</td>
-      <td>2.11</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Birgitta</td>
-      <td>19</td>
-      <td>9:00 am - 10:00 pm</td>
-      <td>9:00 am - 10:00 pm</td>
-    </tr>
-    <tr>
-      <th>26</th>
-      <td>Yes</td>
-      <td>2.40</td>
-      <td>Under 12</td>
-      <td>4.0</td>
-      <td>Empty</td>
-      <td>9</td>
-      <td>12:00 pm - 7:00 pm</td>
-      <td>12:00 pm - 7:00 pm</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-</div>
-
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[53]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#Pick top 5 resturants </span>
-<span class="n">resturant</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-<div class="prompt output_prompt">Out[53]:</div>
-
-
-
-<div class="output_html rendered_html output_subarea output_execute_result">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Accept_credit_card</th>
-      <th>Distance(km)</th>
-      <th>Price_range(€)</th>
-      <th>Rating</th>
-      <th>Resturant_name</th>
-      <th>Review</th>
-      <th>Saturday</th>
-      <th>Sunday</th>
+      <th>9</th>
+      <th>...</th>
+      <th>85</th>
+      <th>86</th>
+      <th>87</th>
+      <th>88</th>
+      <th>89</th>
+      <th>90</th>
+      <th>91</th>
+      <th>92</th>
+      <th>93</th>
+      <th>94</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <th>1</th>
-      <td>Yes</td>
-      <td>0.49</td>
-      <td>13-21</td>
-      <td>4.5</td>
-      <td>SIS. Deli &amp; Cafe</td>
-      <td>17</td>
-      <td>9:00 am - 4:00 pm</td>
-      <td>9:00 am - 4:00 pm</td>
+      <th>1681</th>
+      <td>-0.272560</td>
+      <td>1.183980</td>
+      <td>1.239067</td>
+      <td>1.396054</td>
+      <td>1.110825</td>
+      <td>-0.154792</td>
+      <td>0.817155</td>
+      <td>1.292117</td>
+      <td>-0.336733</td>
+      <td>-0.116181</td>
+      <td>...</td>
+      <td>-0.413969</td>
+      <td>1.247128</td>
+      <td>-0.645063</td>
+      <td>-0.519764</td>
+      <td>-0.446957</td>
+      <td>-0.553628</td>
+      <td>-0.035909</td>
+      <td>4.348122</td>
+      <td>-0.833718</td>
+      <td>-0.920487</td>
     </tr>
     <tr>
-      <th>2</th>
-      <td>Yes</td>
-      <td>0.86</td>
-      <td>13-21</td>
-      <td>4.5</td>
-      <td>Café DaJa</td>
-      <td>10</td>
-      <td>9:00 am - 6:00 pm</td>
-      <td>9:00 am - 6:00 pm</td>
+      <th>1682</th>
+      <td>-0.272560</td>
+      <td>-1.110629</td>
+      <td>-1.133639</td>
+      <td>-1.080634</td>
+      <td>-1.181473</td>
+      <td>-1.130180</td>
+      <td>-1.219529</td>
+      <td>-1.134232</td>
+      <td>-1.481504</td>
+      <td>-1.216595</td>
+      <td>...</td>
+      <td>2.753827</td>
+      <td>1.247128</td>
+      <td>-0.645063</td>
+      <td>-0.519764</td>
+      <td>-0.446957</td>
+      <td>-0.499762</td>
+      <td>0.333595</td>
+      <td>-0.868131</td>
+      <td>0.490999</td>
+      <td>-1.026210</td>
     </tr>
     <tr>
-      <th>3</th>
-      <td>Yes</td>
-      <td>0.65</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Café Engel</td>
-      <td>29</td>
-      <td>9:00 am - 9:00 pm</td>
-      <td>10:00 am - 7:00 pm</td>
+      <th>1683</th>
+      <td>3.666747</td>
+      <td>-1.052093</td>
+      <td>-1.069711</td>
+      <td>-1.026400</td>
+      <td>-1.101509</td>
+      <td>-1.056565</td>
+      <td>-1.138062</td>
+      <td>-1.070254</td>
+      <td>-1.481504</td>
+      <td>-1.216595</td>
+      <td>...</td>
+      <td>-1.047414</td>
+      <td>1.247128</td>
+      <td>-0.645063</td>
+      <td>-0.519764</td>
+      <td>-0.446957</td>
+      <td>-0.546810</td>
+      <td>-0.651749</td>
+      <td>-0.863498</td>
+      <td>1.172222</td>
+      <td>-1.143486</td>
     </tr>
     <tr>
-      <th>4</th>
-      <td>Yes</td>
-      <td>0.37</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>La Torrefazione</td>
-      <td>39</td>
-      <td>9:00 am - 7:00 pm</td>
-      <td>10:00 am - 6:30 pm</td>
+      <th>1684</th>
+      <td>-0.272560</td>
+      <td>-1.110629</td>
+      <td>-1.133639</td>
+      <td>-1.080634</td>
+      <td>-1.181473</td>
+      <td>-1.130180</td>
+      <td>-1.219529</td>
+      <td>-1.134232</td>
+      <td>-1.481504</td>
+      <td>-1.216595</td>
+      <td>...</td>
+      <td>-0.413969</td>
+      <td>1.955296</td>
+      <td>2.097873</td>
+      <td>0.228854</td>
+      <td>-0.446957</td>
+      <td>-0.523627</td>
+      <td>-0.282245</td>
+      <td>-1.006615</td>
+      <td>-0.911273</td>
+      <td>-0.712788</td>
     </tr>
     <tr>
-      <th>6</th>
-      <td>Yes</td>
-      <td>0.50</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Karl Fazer Café</td>
-      <td>91</td>
-      <td>9:00 am - 10:00 pm</td>
-      <td>10:00 am - 6:00 pm</td>
+      <th>1685</th>
+      <td>3.666747</td>
+      <td>-0.908680</td>
+      <td>-0.897598</td>
+      <td>-0.881776</td>
+      <td>-0.994891</td>
+      <td>-0.541266</td>
+      <td>-0.985311</td>
+      <td>-0.977304</td>
+      <td>-1.481504</td>
+      <td>-1.216595</td>
+      <td>...</td>
+      <td>0.852921</td>
+      <td>0.538960</td>
+      <td>-0.645063</td>
+      <td>-0.519764</td>
+      <td>-0.446957</td>
+      <td>-0.543173</td>
+      <td>0.210427</td>
+      <td>-0.641198</td>
+      <td>-0.592670</td>
+      <td>-0.494221</td>
+    </tr>
+    <tr>
+      <th>1686</th>
+      <td>-0.272560</td>
+      <td>-1.110629</td>
+      <td>-1.133639</td>
+      <td>-1.080634</td>
+      <td>-1.181473</td>
+      <td>-1.130180</td>
+      <td>-1.219529</td>
+      <td>-1.134232</td>
+      <td>-1.481504</td>
+      <td>-1.216595</td>
+      <td>...</td>
+      <td>0.219476</td>
+      <td>2.664101</td>
+      <td>-0.645063</td>
+      <td>-0.519764</td>
+      <td>-0.446957</td>
+      <td>-0.510217</td>
+      <td>0.333595</td>
+      <td>-0.604976</td>
+      <td>-0.869351</td>
+      <td>-1.088941</td>
+    </tr>
+    <tr>
+      <th>1687</th>
+      <td>-0.272560</td>
+      <td>-1.110629</td>
+      <td>-1.133639</td>
+      <td>-1.080634</td>
+      <td>-1.181473</td>
+      <td>-1.130180</td>
+      <td>-1.219529</td>
+      <td>-1.134232</td>
+      <td>-1.481504</td>
+      <td>-1.216595</td>
+      <td>...</td>
+      <td>-0.413969</td>
+      <td>1.247128</td>
+      <td>3.012185</td>
+      <td>-0.519764</td>
+      <td>-0.446957</td>
+      <td>2.830423</td>
+      <td>-0.405413</td>
+      <td>1.916555</td>
+      <td>4.750215</td>
+      <td>8.759026</td>
+    </tr>
+    <tr>
+      <th>1688</th>
+      <td>-0.272560</td>
+      <td>0.106919</td>
+      <td>0.130165</td>
+      <td>0.220983</td>
+      <td>0.017985</td>
+      <td>-0.872530</td>
+      <td>-0.094261</td>
+      <td>0.104292</td>
+      <td>-0.681981</td>
+      <td>-0.608291</td>
+      <td>...</td>
+      <td>-1.047414</td>
+      <td>3.372270</td>
+      <td>-0.645063</td>
+      <td>-0.519764</td>
+      <td>-0.446957</td>
+      <td>1.145557</td>
+      <td>1.072604</td>
+      <td>2.183500</td>
+      <td>3.526110</td>
+      <td>2.258242</td>
+    </tr>
+    <tr>
+      <th>1689</th>
+      <td>-0.272560</td>
+      <td>-1.110629</td>
+      <td>-1.133639</td>
+      <td>-1.080634</td>
+      <td>-1.181473</td>
+      <td>-1.130180</td>
+      <td>-1.219529</td>
+      <td>-1.134232</td>
+      <td>-1.481504</td>
+      <td>-1.216595</td>
+      <td>...</td>
+      <td>-0.413969</td>
+      <td>0.538960</td>
+      <td>-0.645063</td>
+      <td>-0.519764</td>
+      <td>-0.446957</td>
+      <td>3.593647</td>
+      <td>-0.405413</td>
+      <td>1.288657</td>
+      <td>4.410652</td>
+      <td>11.255042</td>
+    </tr>
+    <tr>
+      <th>1690</th>
+      <td>-0.272560</td>
+      <td>-1.110629</td>
+      <td>-1.133639</td>
+      <td>-1.080634</td>
+      <td>-1.181473</td>
+      <td>-1.130180</td>
+      <td>-1.219529</td>
+      <td>-1.134232</td>
+      <td>-1.481504</td>
+      <td>-1.216595</td>
+      <td>...</td>
+      <td>0.219476</td>
+      <td>-0.877377</td>
+      <td>-0.645063</td>
+      <td>-0.519764</td>
+      <td>0.756553</td>
+      <td>4.251411</td>
+      <td>0.826268</td>
+      <td>0.515199</td>
+      <td>5.563491</td>
+      <td>12.950892</td>
     </tr>
   </tbody>
 </table>
+<p>10 rows × 95 columns</p>
 </div>
 </div>
 
@@ -12440,25 +12823,15 @@ div#notebook {
 </div>
 </div>
 
-</div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>======  we got the top five resturant that full fill our requirements i.e. 1. accept credit card payment, 2. with the average price between 8-21€, 3.at least 5 reviews, and  4. Open in the weekend. But  lets do another way to find the top five i.e by intersecting the top review (10) and top rating (10) resturants. This is applying because we have seen that the resturants having less review but high rating are seen in the top place ======</p>
-
-</div>
-</div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[54]:</div>
+<div class="prompt input_prompt">In&nbsp;[6]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#find top 10 restaurants based on rating(descending order)</span>
-<span class="n">Max_rating</span> <span class="o">=</span> <span class="n">resturant</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;Rating&#39;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">Max_Rating_top10</span> <span class="o">=</span> <span class="n">Max_rating</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
-<span class="n">Max_Rating_top10</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># read coordinates in pandas dataframe</span>
+<span class="n">df_cordin</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;COORDINATES.csv&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">df_cordin</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 </pre></div>
 
 </div>
@@ -12471,7 +12844,7 @@ div#notebook {
 
 <div class="output_area">
 
-<div class="prompt output_prompt">Out[54]:</div>
+<div class="prompt output_prompt">Out[6]:</div>
 
 
 
@@ -12494,422 +12867,35 @@ div#notebook {
   <thead>
     <tr style="text-align: right;">
       <th></th>
-      <th>Accept_credit_card</th>
-      <th>Distance(km)</th>
-      <th>Price_range(€)</th>
-      <th>Rating</th>
-      <th>Resturant_name</th>
-      <th>Review</th>
-      <th>Saturday</th>
-      <th>Sunday</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
+      <th>0</th>
       <th>1</th>
-      <td>Yes</td>
-      <td>0.49</td>
-      <td>13-21</td>
-      <td>4.5</td>
-      <td>SIS. Deli &amp; Cafe</td>
-      <td>17</td>
-      <td>9:00 am - 4:00 pm</td>
-      <td>9:00 am - 4:00 pm</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>Yes</td>
-      <td>0.86</td>
-      <td>13-21</td>
-      <td>4.5</td>
-      <td>Café DaJa</td>
-      <td>10</td>
-      <td>9:00 am - 6:00 pm</td>
-      <td>9:00 am - 6:00 pm</td>
-    </tr>
-    <tr>
-      <th>8</th>
-      <td>Yes</td>
-      <td>1.45</td>
-      <td>13-21</td>
-      <td>4.5</td>
-      <td>Cargo</td>
-      <td>7</td>
-      <td>10:00 am - 10:00 pm</td>
-      <td>10:00 am - 4:00 pm</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>Yes</td>
-      <td>0.65</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Café Engel</td>
-      <td>29</td>
-      <td>9:00 am - 9:00 pm</td>
-      <td>10:00 am - 7:00 pm</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>Yes</td>
-      <td>0.37</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>La Torrefazione</td>
-      <td>39</td>
-      <td>9:00 am - 7:00 pm</td>
-      <td>10:00 am - 6:30 pm</td>
-    </tr>
-    <tr>
-      <th>6</th>
-      <td>Yes</td>
-      <td>0.50</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Karl Fazer Café</td>
-      <td>91</td>
-      <td>9:00 am - 10:00 pm</td>
-      <td>10:00 am - 6:00 pm</td>
-    </tr>
-    <tr>
-      <th>7</th>
-      <td>Yes</td>
-      <td>1.16</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Tin Tin Tango</td>
-      <td>29</td>
-      <td>9:00 am - 12:00 am</td>
-      <td>10:00 am - 9:00 pm</td>
-    </tr>
-    <tr>
-      <th>10</th>
-      <td>Yes</td>
-      <td>0.96</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Piritta</td>
-      <td>17</td>
-      <td>9:00 am - 10:00 pm</td>
-      <td>9:00 am - 8:00 pm</td>
-    </tr>
-    <tr>
-      <th>13</th>
-      <td>Yes</td>
-      <td>2.16</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Ursula</td>
-      <td>28</td>
-      <td>9:00 am - 10:00 pm</td>
-      <td>9:00 am - 6:00 pm</td>
-    </tr>
-    <tr>
-      <th>14</th>
-      <td>Yes</td>
-      <td>4.86</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Dylan</td>
-      <td>13</td>
-      <td>11:30 am - 2:00 pm</td>
-      <td>11:30 am - 4:30 pm</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-</div>
-
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[55]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># find top 10 restaurants based on maximun review count</span>
-<span class="n">Max_Review</span> <span class="o">=</span> <span class="n">resturant</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;Review&#39;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">Max_Review_top10</span> <span class="o">=</span> <span class="n">Max_Review</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
-<span class="n">Max_Review_top10</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-<div class="prompt output_prompt">Out[55]:</div>
-
-
-
-<div class="output_html rendered_html output_subarea output_execute_result">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Accept_credit_card</th>
-      <th>Distance(km)</th>
-      <th>Price_range(€)</th>
-      <th>Rating</th>
-      <th>Resturant_name</th>
-      <th>Review</th>
-      <th>Saturday</th>
-      <th>Sunday</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>6</th>
-      <td>Yes</td>
-      <td>0.50</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Karl Fazer Café</td>
-      <td>91</td>
-      <td>9:00 am - 10:00 pm</td>
-      <td>10:00 am - 6:00 pm</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>Yes</td>
-      <td>0.37</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>La Torrefazione</td>
-      <td>39</td>
-      <td>9:00 am - 7:00 pm</td>
-      <td>10:00 am - 6:30 pm</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>Yes</td>
-      <td>0.65</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Café Engel</td>
-      <td>29</td>
-      <td>9:00 am - 9:00 pm</td>
-      <td>10:00 am - 7:00 pm</td>
-    </tr>
-    <tr>
-      <th>7</th>
-      <td>Yes</td>
-      <td>1.16</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Tin Tin Tango</td>
-      <td>29</td>
-      <td>9:00 am - 12:00 am</td>
-      <td>10:00 am - 9:00 pm</td>
-    </tr>
-    <tr>
-      <th>13</th>
-      <td>Yes</td>
-      <td>2.16</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Ursula</td>
-      <td>28</td>
-      <td>9:00 am - 10:00 pm</td>
-      <td>9:00 am - 6:00 pm</td>
-    </tr>
-    <tr>
-      <th>17</th>
-      <td>Yes</td>
-      <td>2.11</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Birgitta</td>
-      <td>19</td>
-      <td>9:00 am - 10:00 pm</td>
-      <td>9:00 am - 10:00 pm</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>Yes</td>
-      <td>0.49</td>
-      <td>13-21</td>
-      <td>4.5</td>
-      <td>SIS. Deli &amp; Cafe</td>
-      <td>17</td>
-      <td>9:00 am - 4:00 pm</td>
-      <td>9:00 am - 4:00 pm</td>
-    </tr>
-    <tr>
-      <th>10</th>
-      <td>Yes</td>
-      <td>0.96</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Piritta</td>
-      <td>17</td>
-      <td>9:00 am - 10:00 pm</td>
-      <td>9:00 am - 8:00 pm</td>
-    </tr>
-    <tr>
-      <th>14</th>
-      <td>Yes</td>
-      <td>4.86</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Dylan</td>
-      <td>13</td>
-      <td>11:30 am - 2:00 pm</td>
-      <td>11:30 am - 4:30 pm</td>
-    </tr>
-    <tr>
-      <th>16</th>
-      <td>Yes</td>
-      <td>1.61</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Sandro</td>
-      <td>12</td>
-      <td>10:00 am - 12:00 am</td>
-      <td>10:00 am - 11:00 pm</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-</div>
-
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[56]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Find the intersection of the &#39;Max_Rating_top10&#39; and &#39;Max_Review_top10&#39;</span>
-<span class="n">Top_five_Restaurants</span><span class="o">=</span> <span class="n">Max_Rating_top10</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">Max_Review_top10</span><span class="p">)</span>
-<span class="n">Top_five_Restaurants</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area">
-
-<div class="prompt output_prompt">Out[56]:</div>
-
-
-
-<div class="output_html rendered_html output_subarea output_execute_result">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Accept_credit_card</th>
-      <th>Distance(km)</th>
-      <th>Price_range(€)</th>
-      <th>Rating</th>
-      <th>Resturant_name</th>
-      <th>Review</th>
-      <th>Saturday</th>
-      <th>Sunday</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <th>0</th>
-      <td>Yes</td>
-      <td>0.49</td>
-      <td>13-21</td>
-      <td>4.5</td>
-      <td>SIS. Deli &amp; Cafe</td>
-      <td>17</td>
-      <td>9:00 am - 4:00 pm</td>
-      <td>9:00 am - 4:00 pm</td>
+      <td>459140.0</td>
+      <td>7524200.0</td>
     </tr>
     <tr>
       <th>1</th>
-      <td>Yes</td>
-      <td>0.65</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Café Engel</td>
-      <td>29</td>
-      <td>9:00 am - 9:00 pm</td>
-      <td>10:00 am - 7:00 pm</td>
+      <td>461590.0</td>
+      <td>7549000.0</td>
     </tr>
     <tr>
       <th>2</th>
-      <td>Yes</td>
-      <td>0.37</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>La Torrefazione</td>
-      <td>39</td>
-      <td>9:00 am - 7:00 pm</td>
-      <td>10:00 am - 6:30 pm</td>
+      <td>462040.0</td>
+      <td>7549300.0</td>
     </tr>
     <tr>
       <th>3</th>
-      <td>Yes</td>
-      <td>0.50</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Karl Fazer Café</td>
-      <td>91</td>
-      <td>9:00 am - 10:00 pm</td>
-      <td>10:00 am - 6:00 pm</td>
+      <td>462040.0</td>
+      <td>7549300.0</td>
     </tr>
     <tr>
       <th>4</th>
-      <td>Yes</td>
-      <td>1.16</td>
-      <td>13-21</td>
-      <td>4.0</td>
-      <td>Tin Tin Tango</td>
-      <td>29</td>
-      <td>9:00 am - 12:00 am</td>
-      <td>10:00 am - 9:00 pm</td>
+      <td>462130.0</td>
+      <td>7549400.0</td>
     </tr>
   </tbody>
 </table>
@@ -12922,37 +12908,20 @@ div#notebook {
 </div>
 
 </div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>Result: The top five resturants from both method looks almost the same resturants.</p>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<h3 id="========-plot-the-top-five-resturants-in-bar-charts-=========">======== plot the top five resturants in bar charts =========<a class="anchor-link" href="#========-plot-the-top-five-resturants-in-bar-charts-=========">&#182;</a></h3>
-</div>
-</div>
-</div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[57]:</div>
+<div class="prompt input_prompt">In&nbsp;[7]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">pyplot</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># target variable(output)</span>
+<span class="n">df_target</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;OUTPUT.csv&#39;</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Target&#39;</span><span class="p">])</span>
 
-<span class="n">data</span> <span class="o">=</span> <span class="n">Top_five_Restaurants</span><span class="o">.</span><span class="n">head</span><span class="p">()</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">items</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Rating&#39;</span><span class="p">,</span><span class="s1">&#39;Review&#39;</span><span class="p">,</span><span class="s1">&#39;Distance(km)&#39;</span><span class="p">])</span> <span class="c1"># takes data to plot</span>
+<span class="c1"># lets combine &#39;df_target&#39; dataframe with &#39;data&#39; dataframe</span>
+<span class="sd">&#39;&#39;&#39;It will be easier to take target variable with repesct to test instance later in Knn. So, I don&#39;t have to modify</span>
+<span class="sd">much Knn from scratch code&#39;&#39;&#39;</span>
 
-<span class="c1">#create the figure instance</span>
-<span class="n">ax</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">kind</span> <span class="o">=</span> <span class="s1">&#39;bar&#39;</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Bar Chart of top five restaurants&#39;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">7</span><span class="p">))</span> 
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">Top_five_Restaurants</span><span class="o">.</span><span class="n">Resturant_name</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">45</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Resturant Name&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Scale&#39;</span><span class="p">)</span>
-<span class="n">pyplot</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">data_with_target</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">data</span><span class="p">,</span> <span class="n">df_target</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">data_with_target</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 </pre></div>
 
 </div>
@@ -12962,6 +12931,704 @@ div#notebook {
 <div class="output_wrapper">
 <div class="output">
 
+
+<div class="output_area">
+
+<div class="prompt output_prompt">Out[7]:</div>
+
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>0</th>
+      <th>1</th>
+      <th>2</th>
+      <th>3</th>
+      <th>4</th>
+      <th>5</th>
+      <th>6</th>
+      <th>7</th>
+      <th>8</th>
+      <th>9</th>
+      <th>...</th>
+      <th>86</th>
+      <th>87</th>
+      <th>88</th>
+      <th>89</th>
+      <th>90</th>
+      <th>91</th>
+      <th>92</th>
+      <th>93</th>
+      <th>94</th>
+      <th>Target</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>-0.272641</td>
+      <td>0.247478</td>
+      <td>0.186771</td>
+      <td>0.175840</td>
+      <td>0.231291</td>
+      <td>-0.486200</td>
+      <td>0.277516</td>
+      <td>0.255260</td>
+      <td>0.662867</td>
+      <td>0.225630</td>
+      <td>...</td>
+      <td>0.539119</td>
+      <td>-0.645254</td>
+      <td>-0.519918</td>
+      <td>-0.447089</td>
+      <td>0.554097</td>
+      <td>0.087285</td>
+      <td>-0.109193</td>
+      <td>-0.913639</td>
+      <td>-0.461479</td>
+      <td>5.8359</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>-0.272641</td>
+      <td>-0.150684</td>
+      <td>-0.140341</td>
+      <td>-0.113494</td>
+      <td>-0.168647</td>
+      <td>-0.467791</td>
+      <td>-0.145221</td>
+      <td>-0.110611</td>
+      <td>2.080623</td>
+      <td>2.030569</td>
+      <td>...</td>
+      <td>-0.169259</td>
+      <td>-0.645254</td>
+      <td>2.475438</td>
+      <td>-0.447089</td>
+      <td>-0.288927</td>
+      <td>-0.035919</td>
+      <td>-1.481978</td>
+      <td>-1.087664</td>
+      <td>-0.461479</td>
+      <td>6.2592</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>3.667832</td>
+      <td>-0.578123</td>
+      <td>-0.595346</td>
+      <td>-0.574620</td>
+      <td>-0.621910</td>
+      <td>-0.467791</td>
+      <td>-0.629077</td>
+      <td>-0.606892</td>
+      <td>-0.500419</td>
+      <td>-0.341832</td>
+      <td>...</td>
+      <td>-0.877636</td>
+      <td>-0.645254</td>
+      <td>-0.519918</td>
+      <td>-0.447089</td>
+      <td>-0.375320</td>
+      <td>-0.159124</td>
+      <td>0.349947</td>
+      <td>0.134707</td>
+      <td>-0.809315</td>
+      <td>6.9041</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>-0.272641</td>
+      <td>-0.507859</td>
+      <td>-0.474831</td>
+      <td>-0.502287</td>
+      <td>-0.461935</td>
+      <td>-0.688698</td>
+      <td>-0.481374</td>
+      <td>-0.453540</td>
+      <td>0.817366</td>
+      <td>1.032383</td>
+      <td>...</td>
+      <td>-0.877636</td>
+      <td>-0.645254</td>
+      <td>-0.519918</td>
+      <td>-0.447089</td>
+      <td>-0.383278</td>
+      <td>0.703308</td>
+      <td>0.467238</td>
+      <td>0.107450</td>
+      <td>-0.832933</td>
+      <td>6.2065</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>-0.272641</td>
+      <td>-0.821119</td>
+      <td>-0.853593</td>
+      <td>-0.809704</td>
+      <td>-0.915198</td>
+      <td>-0.651880</td>
+      <td>-0.924484</td>
+      <td>-0.854429</td>
+      <td>0.926424</td>
+      <td>0.355530</td>
+      <td>...</td>
+      <td>-0.877636</td>
+      <td>2.098494</td>
+      <td>0.977760</td>
+      <td>1.960643</td>
+      <td>-0.296657</td>
+      <td>0.087285</td>
+      <td>-0.333328</td>
+      <td>-0.636876</td>
+      <td>-0.542584</td>
+      <td>7.0642</td>
+    </tr>
+  </tbody>
+</table>
+<p>5 rows × 96 columns</p>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+
+<pre><code>        ===  Knn from scratch implementation ====
+
+</code></pre>
+<p>The three functions are used to perfome Knn regression. The eculidan_dist() function calculates the eculidan distance between the two instances of data. The second function get_neighbours() finds the 'k' neighbours for the test instance, and the third function get_predic_val() finds the predict values by averaging the 'k' neigbours target variables.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[8]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#calculates eculidan distance between two data instances</span>
+<span class="nd">@autojit</span>
+<span class="k">def</span> <span class="nf">eculidan_dist</span><span class="p">(</span><span class="n">data1</span><span class="p">,</span> <span class="n">data2</span><span class="p">):</span>
+    
+    <span class="n">distance</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data2</span><span class="p">)</span> <span class="o">-</span><span class="mi">1</span> <span class="c1"># since last variable is target </span>
+        
+    <span class="c1"># loop through all  input variables (except target variables)</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">length</span><span class="p">):</span>
+        <span class="n">distance</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">((</span><span class="n">data1</span><span class="p">[</span><span class="n">x</span><span class="p">]</span><span class="o">-</span> <span class="n">data2</span><span class="p">[</span><span class="n">x</span><span class="p">]),</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">distance</span><span class="p">)</span>
+    
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[9]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># finds k nearest  neighbors of  test instance </span>
+<span class="nd">@autojit</span>
+<span class="k">def</span> <span class="nf">get_neighbours</span><span class="p">(</span><span class="n">trainingSet</span><span class="p">,</span> <span class="n">testInstance</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        <span class="n">distance</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="c1"># find distance  between  a test instance to all training instances</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">trainingSet</span><span class="p">)):</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">eculidan_dist</span><span class="p">(</span><span class="n">trainingSet</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">testInstance</span><span class="p">)</span> <span class="c1"># call eculidan_dist function</span>
+            <span class="n">distance</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">trainingSet</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">dist</span><span class="p">))</span> 
+        
+        <span class="c1"># sort the distance in ascending order</span>
+        <span class="n">distance</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">operator</span><span class="o">.</span><span class="n">itemgetter</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        
+    
+        <span class="c1">#store the  k neighbours</span>
+        <span class="n">neighbours</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span>  <span class="nb">range</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
+            <span class="c1"># takes only neighbours from distance list and append </span>
+            <span class="n">neighbours</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">distance</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> 
+        <span class="k">return</span> <span class="n">neighbours</span>
+    
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[10]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># finds average of target variables of k neighbours</span>
+<span class="nd">@autojit</span>
+<span class="k">def</span> <span class="nf">get_predic_val</span><span class="p">(</span><span class="n">neighbors</span><span class="p">):</span>
+        <span class="n">total_neig</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">neighbors</span><span class="p">)</span>
+        <span class="n">predict_val</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="c1"># initilize predict value </span>
+        
+        <span class="c1">#iterates over K neighbours</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">total_neig</span><span class="p">):</span>
+            <span class="n">predict_val</span> <span class="o">+=</span> <span class="n">neighbors</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># take target variable(ouput) and sum them</span>
+            
+        
+        <span class="k">return</span>  <span class="n">predict_val</span><span class="o">/</span><span class="n">total_neig</span> <span class="c1"># take average </span>
+    
+    
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>===  implementation of c-index ===</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[11]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#implementation  of C_index</span>
+<span class="nd">@autojit</span>
+<span class="k">def</span> <span class="nf">c_index</span> <span class="p">(</span><span class="n">true_labels</span><span class="p">,</span> <span class="n">predictions</span><span class="p">):</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">h_sum</span> <span class="o">=</span><span class="mi">0</span>
+    
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">true_labels</span><span class="p">)):</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">true_labels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">predictions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        
+        
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">true_labels</span><span class="p">)):</span>
+            <span class="n">nt</span> <span class="o">=</span> <span class="n">true_labels</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+            <span class="n">np</span> <span class="o">=</span> <span class="n">predictions</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+            
+            <span class="k">if</span><span class="p">(</span> <span class="n">t</span><span class="o">!=</span><span class="n">nt</span><span class="p">):</span>
+                <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+                
+                <span class="k">if</span><span class="p">(</span><span class="n">p</span> <span class="o">&lt;</span> <span class="n">np</span> <span class="ow">and</span> <span class="n">t</span> <span class="o">&lt;</span>  <span class="n">nt</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">p</span> <span class="o">&gt;</span> <span class="n">np</span> <span class="ow">and</span> <span class="n">t</span> <span class="o">&gt;</span> <span class="n">nt</span><span class="p">):</span>
+                    <span class="n">h_sum</span> <span class="o">+=</span> <span class="mi">1</span>
+                
+                <span class="k">elif</span><span class="p">(</span><span class="n">p</span> <span class="o">==</span> <span class="n">np</span><span class="p">):</span>
+                    <span class="n">h_sum</span> <span class="o">+=</span> <span class="mf">0.5</span>
+                
+    <span class="n">c_index</span> <span class="o">=</span> <span class="n">h_sum</span><span class="o">/</span><span class="n">n</span>
+    <span class="k">return</span> <span class="n">c_index</span>
+    
+    
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[12]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># testing c-index implementation</span>
+<span class="n">true_labels</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="n">predictions</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.60</span><span class="p">,</span> <span class="mf">0.80</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.70</span><span class="p">]</span>
+<span class="n">c_index</span><span class="p">(</span><span class="n">true_labels</span><span class="p">,</span> <span class="n">predictions</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt output_prompt">Out[12]:</div>
+
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>0.75</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+
+<pre><code>                === cross_validation start from here ===
+
+</code></pre>
+<p>In this task, the dead zone radius (distance from test instance) is calcuated using eculidan distance between the test instance to all other data instances using co-ordinates. As mentioned in the lecture slides, the certain radius(=0 to 200 with 10 interval) is used and data points which lies in the given radius should be excluded/removed from training data set. The different k-values(=1, 3, 5, 7, 9) for Knn is used and find the optimal k using the c_index(higest) as metric. The following codes store all the c_index of k-values(=1, 3, 5, 7, 9) from each  radius(=0 to 200 with 10 interval) in 'c_index_values = {}' dictionary.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[13]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="k">import</span> <span class="n">distance</span>
+<span class="nd">@autojit</span>
+<span class="k">def</span> <span class="nf">cross_validation</span><span class="p">(</span><span class="n">df_cordin</span><span class="p">,</span> <span class="n">data_with_target</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    df_cordin = cordinates of all data points</span>
+<span class="sd">    data_with_target = dataframe with input features and target variables</span>
+<span class="sd">    </span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Program runing ....&#39;</span><span class="p">)</span>
+    <span class="n">c_index_values</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1">#store all the c-index values of k(=1,3,5,7,9) in given radius(as key) of(= 0 to 200) with 10 interval</span>
+    
+    
+    <span class="sd">&#39;&#39;&#39;Find the data instances in the given radius and exclude them in training set&#39;&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">radius</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">201</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span> <span class="c1"># radius  interval of 10 meter</span>
+        <span class="n">optimal_k</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">higest_cindex</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">c_index_each_radius</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># store each c-index values with corresponding k(as key)</span>
+    
+        <span class="c1"># k_values for KNN</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">2</span><span class="p">):</span> 
+            <span class="n">predicted_values</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># store predicted values</span>
+            <span class="n">true_values</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1">#store true values</span>
+        
+        
+            <span class="c1"># calculate radius(using eculidian distance) from point p1 to p2(= all other co-ordinates)</span>
+            <span class="c1"># split data into train and test set</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_cordin</span><span class="p">)):</span> <span class="c1"># iterates over all coordinates</span>
+                <span class="n">p1</span> <span class="o">=</span> <span class="p">(</span><span class="n">df_cordin</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">x</span><span class="p">],</span> <span class="n">df_cordin</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">x</span><span class="p">])</span> <span class="c1">#base co-ordinate</span>
+                <span class="n">test_data</span><span class="o">=</span> <span class="n">data_with_target</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="c1"># test instance</span>
+                <span class="n">train_data</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># store for train data</span>
+                <span class="n">true_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data_with_target</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="c1"># append target value</span>
+                
+                
+                <span class="c1"># find p2(= all other co-ordinates) except p1</span>
+                <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_cordin</span><span class="p">)):</span> <span class="c1"># iterates over all coordinates </span>
+                    <span class="k">if</span> <span class="n">y</span> <span class="o">!=</span> <span class="n">x</span><span class="p">:</span> <span class="c1"># check other cordinates than  p1(base cordinates)</span>
+                        <span class="n">p2</span> <span class="o">=</span> <span class="p">(</span><span class="n">df_cordin</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">y</span><span class="p">],</span> <span class="n">df_cordin</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">y</span><span class="p">])</span> <span class="c1"># take next cordinates </span>
+                        <span class="n">dst</span> <span class="o">=</span> <span class="n">distance</span><span class="o">.</span><span class="n">euclidean</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">)</span> <span class="c1"># euclidan distance from p1 and p2, and  assign &#39;y&#39;  row index </span>
+                        
+                        <span class="c1">#exclude the data instance that lies in given radius and assign remaining as train_set</span>
+                        <span class="k">if</span>  <span class="n">dst</span> <span class="o">&gt;</span> <span class="n">radius</span><span class="p">:</span> 
+                            <span class="n">train_instance</span> <span class="o">=</span> <span class="n">data_with_target</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">y</span><span class="p">]</span> <span class="c1"># train_instance of &#39;y&#39; row index</span>
+                            <span class="n">train_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">train_instance</span><span class="p">)</span>
+                            
+           
+                <span class="sd">&#39;&#39;&#39; == knn regression start from here ===  &#39;&#39;&#39;</span> 
+                <span class="n">neighbours</span> <span class="o">=</span> <span class="n">get_neighbours</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">train_data</span><span class="p">),</span> <span class="n">test_data</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="c1">#call  get_neighbours()</span>
+                <span class="n">predic_val</span> <span class="o">=</span> <span class="n">get_predic_val</span><span class="p">(</span><span class="n">neighbours</span><span class="p">)</span> <span class="c1"># call get_predic_val()</span>
+                <span class="n">predicted_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">predic_val</span><span class="p">)</span> <span class="c1">#append predic_val</span>
+                
+            
+        
+            <span class="sd">&#39;&#39;&#39;=== c_index calculation start from here ===&#39;&#39;&#39;</span>    
+            <span class="n">c_val</span> <span class="o">=</span> <span class="n">c_index</span><span class="p">(</span><span class="n">true_values</span><span class="p">,</span> <span class="n">predicted_values</span><span class="p">)</span> <span class="c1"># call c_index()</span>
+            <span class="n">c_index_each_radius</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">c_val</span> <span class="c1"># assign c_index value with respect to k in Knn</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">c_val</span><span class="p">)</span>
+        
+            <span class="k">if</span> <span class="n">c_val</span> <span class="o">&gt;</span> <span class="n">higest_cindex</span><span class="p">:</span> <span class="c1">#check higest c_index </span>
+                <span class="n">higest_cindex</span> <span class="o">=</span> <span class="n">c_val</span> 
+                <span class="n">optimal_k</span> <span class="o">=</span> <span class="n">k</span>
+            
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Optimal k for radius </span><span class="si">{0}</span><span class="s1"> is </span><span class="si">{1}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">radius</span><span class="p">,</span><span class="n">optimal_k</span><span class="p">))</span>
+        <span class="n">c_index_values</span><span class="p">[</span><span class="n">radius</span><span class="p">]</span> <span class="o">=</span> <span class="n">c_index_each_radius</span> <span class="c1"># append all c-index with k </span>
+    
+    
+    <span class="k">return</span> <span class="n">c_index_values</span>           
+
+ 
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="o">%%time</span>
+<span class="c1"># run cross_validation function</span>
+<span class="n">c_index_values</span> <span class="o">=</span>  <span class="n">cross_validation</span><span class="p">(</span><span class="n">df_cordin</span><span class="p">,</span> <span class="n">data_with_target</span> <span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Program runing ....
+0.6744175302976639
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[17]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># show the c_index values when k (= 1,3,5,7,9) in given radius(0,200 with interval of 10)   </span>
+<span class="n">c_index_values</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt output_prompt">Out[17]:</div>
+
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>{0: {1: 0.6744175302976639,
+  3: 0.713814292853853,
+  5: 0.7188966848608974,
+  7: 0.7194381020510157,
+  9: 0.7209395110656294},
+ 10: {1: 0.6632315081706048,
+  3: 0.6979490542873102,
+  5: 0.7065896806653517,
+  7: 0.7098024859693502,
+  9: 0.7116059266808431},
+ 20: {1: 0.6601579944255378,
+  3: 0.7002501648400107,
+  5: 0.7079682471242242,
+  7: 0.7106189864894188,
+  9: 0.7115698788653407},
+ 30: {1: 0.6607323096220369,
+  3: 0.7010169683717167,
+  5: 0.7030888428161254,
+  7: 0.7048530859029942,
+  9: 0.7053399064016721},
+ 40: {1: 0.6578691331305323,
+  3: 0.6969925622507276,
+  5: 0.6979147563657643,
+  7: 0.7001668698876848,
+  9: 0.704309218861337},
+ 50: {1: 0.6488498297003201,
+  3: 0.6888013086406963,
+  5: 0.6941461847412047,
+  7: 0.6972690454958429,
+  9: 0.7008290297607965},
+ 60: {1: 0.6449762644383751,
+  3: 0.6856528994342943,
+  5: 0.6927392700002379,
+  7: 0.6954971028755658,
+  9: 0.6992586749242996},
+ 70: {1: 0.6422856274909741,
+  3: 0.6822770040135567,
+  5: 0.6871613080247337,
+  7: 0.6914712968394116,
+  9: 0.6943589718463061},
+ 80: {1: 0.6404188406182585,
+  3: 0.6821867094854052,
+  5: 0.6860504753411943,
+  7: 0.6901441772628578,
+  9: 0.6909778267436993},
+ 90: {1: 0.6416570655818258,
+  3: 0.6807468967380577,
+  5: 0.6849361428697421,
+  7: 0.6886599172090171,
+  9: 0.6877958195733339},
+ 100: {1: 0.6424235191347404,
+  3: 0.6829115155621569,
+  5: 0.6832040978316714,
+  7: 0.6868907744190702,
+  9: 0.6848433984900515},
+ 110: {1: 0.6083310351392706,
+  3: 0.6401329079457785,
+  5: 0.6474404651078145,
+  7: 0.6546552778901599,
+  9: 0.6488652287671367},
+ 120: {1: 0.5898542548321571,
+  3: 0.621865764934645,
+  5: 0.6282395786815319,
+  7: 0.6340331275924679,
+  9: 0.629896028300685},
+ 130: {1: 0.5866082015429865,
+  3: 0.6134130771675237,
+  5: 0.61800584884556,
+  7: 0.6214009930998181,
+  9: 0.6204165027599328},
+ 140: {1: 0.5857189054343307,
+  3: 0.6101971220544035,
+  5: 0.6172159467136291,
+  7: 0.6192710221760561,
+  9: 0.6177108167245065},
+ 150: {1: 0.5833614482962333,
+  3: 0.6070508127207491,
+  5: 0.6145753567333819,
+  7: 0.6163179011351912,
+  9: 0.6142043792146196},
+ 160: {1: 0.5830821652207876,
+  3: 0.6085273732411816,
+  5: 0.615655041304497,
+  7: 0.6171784989829616,
+  9: 0.6148112424387082},
+ 170: {1: 0.5837016276813625,
+  3: 0.6082400406535364,
+  5: 0.6149158860973025,
+  7: 0.6169174148046629,
+  9: 0.6140003415793003},
+ 180: {1: 0.5844439326976785,
+  3: 0.6073965917665389,
+  5: 0.6141889801478031,
+  7: 0.6161579608275739,
+  9: 0.6131519929892248},
+ 190: {1: 0.5853405783609513,
+  3: 0.605688695265067,
+  5: 0.6130001021938071,
+  7: 0.6158622287489378,
+  9: 0.6122476477925438},
+ 200: {1: 0.5839112649773424,
+  3: 0.6050436843527283,
+  5: 0.6117051806660516,
+  7: 0.6147261975924259,
+  9: 0.611030771535245}}</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>====  plot the best c-index (to y-axis) from each radius ( to x-axis) ====</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[18]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="sd">&#39;&#39;&#39;To plot, we have to have the list of radius that were used and best c-index from each radius&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span><span class="p">;</span> <span class="n">sns</span><span class="o">.</span><span class="n">set</span><span class="p">()</span>
+<span class="o">%</span><span class="k">matplotlib</span> inline
+
+
+<span class="n">radius</span><span class="o">=</span> <span class="p">[]</span>
+<span class="n">best_cindex</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="c1">#iterates over c_index_values dictionary</span>
+<span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">inner_dict</span> <span class="ow">in</span> <span class="n">c_index_values</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">radius</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span><span class="c1"># take radius and append</span>
+    <span class="n">best_cindex</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">inner_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span> <span class="c1"># take best c_index and append</span>
+    
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Radius:</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Best_cindex: </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">best_cindex</span><span class="p">)</span>
+
+
+
+<span class="sd">&#39;&#39;&#39; ===  create the figure ===&#39;&#39;&#39;</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">lineplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span> <span class="n">radius</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">best_cindex</span> <span class="p">)</span><span class="c1"># line graph</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;C_index vs Radius(dead zone)&#39;</span><span class="p">,)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Dead zone radius&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;C_index&#39;</span><span class="p">)</span>
+
+<span class="c1">#control x and y limits</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">xlim</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">200</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+<div class="prompt"></div>
+
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Radius:
+ [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200] 
+
+Best_cindex: 
+ [0.7209395110656294, 0.7116059266808431, 0.7115698788653407, 0.7053399064016721, 0.704309218861337, 0.7008290297607965, 0.6992586749242996, 0.6943589718463061, 0.6909778267436993, 0.6886599172090171, 0.6868907744190702, 0.6546552778901599, 0.6340331275924679, 0.6214009930998181, 0.6192710221760561, 0.6163179011351912, 0.6171784989829616, 0.6169174148046629, 0.6161579608275739, 0.6158622287489378, 0.6147261975924259]
+</pre>
+</div>
+</div>
 
 <div class="output_area">
 
@@ -12971,7 +13638,7 @@ div#notebook {
 
 
 <div class="output_png output_subarea ">
-<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAtEAAAHuCAYAAABZDVDiAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAADl0RVh0U29mdHdhcmUAbWF0cGxvdGxpYiB2ZXJzaW9uIDIuMi4yLCBodHRwOi8vbWF0cGxvdGxpYi5vcmcvhp/UCwAAIABJREFUeJzs3XmcnvO9//HXJxMkiCANtbSW2psQaeyl1N6iKAdVjVpaVXT7KaXnVE9Pz9FTRW0tpcdStcWuTk9QVLXVJESVqFDRRiwREgkJSXx+f3yviTEmzKW5557MvJ6PxzxyL9d93Z+Z+8p9v+/v9V0iM5EkSZLUeX2aXYAkSZK0uDFES5IkSTUZoiVJkqSaDNGSJElSTYZoSZIkqSZDtCRJklSTIVpSjxQRkyJip2bX0Soi1o+IByJiZkQc14Tn/1JEPBcRsyJiUPXv2l1dhyT1FIZoSYtcFWBnV0HtpYj4VUR8YBE/x3IRcWZE/L16nser6+9blM/T5vnuiogj/oldfBO4KzMHZOZZDdj/QkXEEsDpwC6ZuWxmTqv+/Vsjnm9RiIhTIuIXza5jYbp7fZIazxAtqVH2zMxlgVWA54Cz38tOIqJvB7ctCdwBfBjYDVgO2BqYBmz+XgteyPNHRCyK98o1gIcXwX7ei5WBfl39/B29dt1FRLQ0uwZJizdDtKSGysw5wChgo9bbIuKTVdeGlyPiHxFxSpv71oyIjIjDI+LvwG862O3ngA8C+2TmI5n5RmY+n5nfy8xb22w3LCL+HBEzIuKqiOhXPccKEXFLREytWspviYjV29RwV0R8PyLuBV4FLgO2Bc6pWr3P6eh3jYi9IuLhiJhe7WPD6vbfADu0efx67R73/Y72HxFbR8SYqv4xEbF1uxr/KyL+VN1/Y0Ss2EFN6wF/ra5Or2qh+huvExFbRsSzbUNlROwTEX+uLveJiBMj4omImBYRV3f0PNW220fE5Ig4ISKeBf6nun2PiBhf/V1+HxEbt3nMCRHxdNXN5a8RsWNE7AacBBxQ/T0erLb9fERMqLb9W0R8sc1+Do2I37WrJyNineryxRHxk4i4NSJeAXbo5HE4sjrb8UJEnFzdt7D6Dq3qmhkRT0bEwR39nST1EJnpjz/++LNIf4BJwE7V5aWBS4BL29y/PTCU8kV+Y0pL9d7VfWsCCVwKLAP072D/VwKXdKKGPwGrAisCE4CjqvsGAZ+uahsAXAPc0OaxdwF/p7R09wWWqG474h2ebz3gFWDnavtvAo8DS7bZ5zs9/i33VzW/BBxS1XBQdX1Qm+2fBoZUf6drgV8sZN+tf9O+bW5LYJ3q8hPAzm3uuwY4sbr8VeCPwOrAUsD5wBULeZ7tgXnAD6pt+wPDgeeBLYAWYGT12iwFrA/8A1i1TZ0fqi6f0v73AT4JfAgI4GOULzjDq/sOBX7Xbvu2v+PFwAxgG8px14/OHYc/q36PTYDXgA07qq96DV4G1q+urwJ8uNn/F/3xx5/G/dgSLalRboiI6ZRgsTPww9Y7MvOuzHwoSwvyn4ErKKGorVMy85XMnN3BvgcBz3SihrMyc0pmvgjcDAyrnn9aZl6bma9m5kzg+x08/8WZ+XBmzsvMuZ14rgOAX2XmbdX2p1HC19bv/LCF+iQwMTMvq2q4AngU2LPNNpdl5l8y8xXgX4F/eY/dFK6ghHQiYgDwieo2gC8CJ2fm5Mx8jRIe93uHrhpvAN/JzNeq1+5I4PzMvC8z52fmJZQwuiUwnxKmN4qIJTJzUmY+sbAiM/NXmflEFncDoykt+J11Y2beWx13czp5HH43M2dn5oPAg5QwvTBvAEMion9mPpOZzeq+I6kLGKIlNcrembk8JSQdA9wdEe8HiIgtIuLOqjvFDOAooP2AwH+8w76nUVr63s2zbS6/CixbPf/SEXF+RDwVES8DvwWWbxdA3+n5O7Iq8FTrlcx8o9rHajX30+H+Kk+1298/2t23BG//O3bGL4F9I2IpYF/g/sxsfe41gOurrhjTKS368yn9rDsyNUsXnlZrAN9ofXy1jw9QWp8fp7R0nwI8HxFXRsSqCysyInaPiD9GxIvVfj5R8/d9y2vayeOww2OoveqLzAHVPp6JMph2gxq1SVrMGKIlNVTV+ngdJXh9tLr5l8BNwAcycyDwU8op+rc89B12ezuwa0Qs8x7L+galK8EWmbkcsF11e9sa2j//O9UDMIUSGMuOIoISFp/uZE3t9/+W/VU+2G5/H2h331zghU4+35tPnPkIJYTvDnyG8vq0+gewe2Yu3+anX2Yu7Pdq/3v8A/h+u8cvXbWsk5m/zMyPUn7XpHQFedt+qoB/LaWFf+XqC9qtvPmavULpntO6/fs7UVtnjsOFedvxkJn/l5k7U77gPUrpCiKphzJES2qoKD4FrEBpxYTSD/nFzJwTEZtTglsdl1HC2bURsUE1+G1QRJwUEZ/oxOMHALMpA+1WBL7Ticc8B7zTvMpXA5+sBsYtQQnqrwG/78S+O9r/rcB6EfGZiOgbEQdQBmfe0mabz0bERhGxNPDvwKjMnN/J52vvl8BxlC8U17S5/afA9yNiDYCIGFy9np31M+CoqtU3ImKZakDfgChzZ3+8CshzKK9Ja/3PAWvGmzOjLEk5qzEVmBcRuwO7tHmeB4EPR8SwKANIT+lEbf/McfiW+iJi5SgDS5ehvO6z2vwuknogQ7SkRrk5ImZR+kR/HxjZpo/o0cC/R8RM4N8oAbTTqr65O1Fa+26rnuNPlFPx93ViF2dS+iu/QBk09+tOPObHlL7AL0XE2+Z5zsy/Ap+lTOX3AqXv8p6Z+Xon9v22/WfmNGAPShifRhmouEdmtm1pvowyYO5ZykC5f2YRlysoA+1+0+45fkxprR1dvV5/pAwS7JTMHEvpF30OZWDk45RBgFBC8amUv9ezwEqUWS/gzSA/LSLur/quH0c5Vl6iBN6b2jzPY5QvErcDE4G3zNSxEP/McfiW+iifp9+gnEF4kdK3+uga+5O0mInMdztDKUnqbiLiLsrsEBc2uxZJ6o1siZYkSZJqMkRLkiRJNdmdQ5IkSarJlmhJkiSpJkO0JEmSVNPClm3tVt73vvflmmuu2ewyJEmS1IONGzfuhcwc3JltF4sQveaaazJ27NhmlyFJkqQeLCKe6uy2dueQJEmSajJES5IkSTUZoiVJkqSaFos+0ZIkSYujuXPnMnnyZObMmdPsUtRGv379WH311VliiSXe8z4M0ZIkSQ0yefJkBgwYwJprrklENLscAZnJtGnTmDx5MmuttdZ73o/dOSRJkhpkzpw5DBo0yADdjUQEgwYN+qfPDhiiJUmSGsgA3f0sitfEEC1JktSDtbS0MGzYMIYMGcKee+7J9OnT33H76dOnc9555y24PmXKFPbbb79Gl7nYsU+0JElSF1nzxF8t0v1NOvWT77pN//79GT9+PAAjR47k3HPP5eSTT17o9q0h+uijjwZg1VVXZdSoUYum4B7ElmhJkqReYquttuLpp58GYNasWey4444MHz6coUOHcuONNwJw4okn8sQTTzBs2DCOP/54Jk2axJAhQwC4+OKL2Xfffdltt91Yd911+eY3v7lg3xdddBHrrbce22+/PUceeSTHHHNM1/+CXciWaEmSpF5g/vz53HHHHRx++OFAmebt+uuvZ7nlluOFF15gyy23ZK+99uLUU0/lL3/5y4LW60mTJr1lP+PHj+eBBx5gqaWWYv311+fYY4+lpaWF733ve9x///0MGDCAj3/842yyySZd/St2KUO0JElSDzZ79myGDRvGpEmT+MhHPsLOO+8MlKneTjrpJH7729/Sp08fnn76aZ577rl33d+OO+7IwIEDAdhoo4146qmneOGFF/jYxz7GiiuuCMD+++/PY4891rhfqhuwO4ckSVIP1ton+qmnnuL111/n3HPPBeDyyy9n6tSpjBs3jvHjx7Pyyit3atq3pZZaasHllpYW5s2bR2Y2rP7uyhAtSZLUCwwcOJCzzjqL0047jblz5zJjxgxWWmklllhiCe68806eeuopAAYMGMDMmTNr7XvzzTfn7rvv5qWXXmLevHlce+21jfgVuhVDtCRJUi+x6aabsskmm3DllVdy8MEHM3bsWEaMGMHll1/OBhtsAMCgQYPYZpttGDJkCMcff3yn9rvaaqtx0kknscUWW7DTTjux0UYbLejy0VPF4tD8PmLEiBw7dmyzy5AkSaplwoQJbLjhhs0uo0vMmjWLZZddlnnz5rHPPvtw2GGHsc8++zS7rIXq6LWJiHGZOaIzj3dgoSRJi7NTGtjad8qMxu1bPc4pp5zC7bffzpw5c9hll13Ye++9m11SQxmiJUmS9E877bTTml1Cl7JPtCRJklSTIVqSJEmqyRAtSZIk1WSIliRJkmoyREuSJPVgLS0tDBs2jCFDhrDnnnsyffr097SfKVOmsN9++y3i6hZfzs4hSZLUVRb1lISdmIawddlvgJEjR3Luuedy8skn136qVVddlVGjRtV+XE9lS7QkSVIvsdVWW/H0008vuP7DH/6QzTbbjI033pjvfOc7AJxwwgmcd955C7Y55ZRT+NGPfsSkSZMYMmQIAPPnz+f4449f8Njzzz8fgKOPPpqbbroJYMGCKwAXXXQR3/72t7vkd+wqhmhJkqReYP78+dxxxx3stddeAIwePZqJEyfypz/9ifHjxzNu3Dh++9vfcuCBB3LVVVcteNzVV1/N/vvv/5Z9XXTRRQwcOJAxY8YwZswYfvazn/Hkk0+y3Xbbcc899wDw9NNP88gjjwDwu9/9jm233baLftOuYYiWJEnqwWbPns2wYcMYNGgQL774IjvvvDNQQvTo0aPZdNNNGT58OI8++igTJ05k00035fnnn2fKlCk8+OCDrLDCCnzwgx98yz5Hjx7NpZdeyrBhw9hiiy2YNm0aEydOZNttt+Wee+7hkUceYaONNmLllVfmmWee4Q9/+ANbb711M379hrFPtCRJUg/W2id6xowZ7LHHHpx77rkcd9xxZCbf+ta3+OIXv/i2x+y3336MGjWKZ599lgMPPPBt92cmZ599Nrvuuuvb7nvppZf49a9/zXbbbceLL77I1VdfzbLLLsuAAQMa8vs1iy3RkiRJvcDAgQM566yzOO2005g7dy677rorP//5z5k1axZQul88//zzABx44IFceeWVjBo1qsMZOXbddVd+8pOfMHfuXAAee+wxXnnlFaD0uz7zzDPZbrvt2HbbbTnttNN6XFcOsCVakiSp19h0003ZZJNNuPLKKznkkEOYMGECW221FQDLLrssv/jFL1hppZX48Ic/zMyZM1lttdVYZZVV3rafI444gkmTJjF8+HAyk8GDB3PDDTcAsO222zJ69GjWWWcd1lhjDV588cUeGaIjM5tdw7saMWJEjh07ttllSJLU/SzqKdPesu93nz5N72zChAlsuOGGzS5DHejotYmIcZk5ojOPtzuHJEmSVJMhWpIkSarJEC1JkiTVZIiWJEmSajJES5IkSTUZoiVJkqSaDNGSJElSTS62IkmS1EWGXjJ0ke7voZEPves2LS0tDB06lLlz59K3b19GjhzJV7/6Vfr06cPYsWO59NJLOeusszp87KRJk/j973/PZz7zmUVa9zt55plnOPLII7nlllu4+OKLGTt2LOecc8572tdOO+3ENddcwworrLCIq7QlWpIkqUfr378/48eP5+GHH+a2227j1ltv5bvf/S4AI0aMWGiAhhKif/nLX3ZVqQCcfvrpHHnkkYtkX4cccgjnnXfeItlXe4ZoSZKkXmKllVbiggsu4JxzziEzueuuu9hjjz0AuPvuuxk2bBjDhg1j0003ZebMmZx44oncc889DBs2jDPOOINJkyax7bbbMnz4cIYPH87vf/97AO666y6233579ttvPzbYYAMOPvhgWlfFHjNmDFtvvTWbbLIJm2++OTNnzmT+/Pkcf/zxbLbZZmy88cacf/75C2q89tpr2W233d5W+69+9Su22morXnjhBQ499FC+9KUvscMOO7D22mtz9913c9hhh7Hhhhty6KGHLnjMXnvtxRVXXNGQv6XdOSRJknqRtddemzfeeIPnn3/+LbefdtppnHvuuWyzzTbMmjWLfv36ceqpp3Laaadxyy23APDqq69y22230a9fPyZOnMhBBx3E2LFjAXjggQd4+OGHWXXVVdlmm22499572XzzzTnggAO46qqr2GyzzXj55Zfp378/F110EQMHDmTMmDG89tprbLPNNuyyyy4ArLDCCiy11FJvqe3666/n9NNP59Zbb13QNeOll17iN7/5DTfddBN77rkn9957LxdeeCGbbbYZ48ePZ9iwYaywwgq89tprTJs2jUGDBi3Sv6MhWpIkqZdpbSVua5tttuHrX/86Bx98MPvuuy+rr77627aZO3cuxxxzDOPHj6elpYXHHntswX2bb775gscMGzaMSZMmMXDgQFZZZRU222wzAJZbbjkARo8ezZ///GdGjRoFwIwZM5g4cSLLLrssgwcPfstz3nnnnYwdO5bRo0cveDzAnnvuSUQwdOhQVl55ZYYOLf3NP/zhDzNp0iSGDRsGlNb3KVOmLPIQbXcOSZKkXuRvf/sbLS0trLTSSm+5/cQTT+TCCy9k9uzZbLnlljz66KNve+wZZ5zByiuvzIMPPsjYsWN5/fXXF9zXtvW4paWFefPmkZlExNv2k5mcffbZjB8/nvHjx/Pkk0+yyy670L9/f+bMmfOWbddee21mzpz5lsDe9vn69Onzlufu06cP8+bNW3B9zpw59O/fvzN/mloM0ZIkSb3E1KlTOeqoozjmmGPeFm6feOIJhg4dygknnMCIESN49NFHGTBgADNnzlywzYwZM1hllVXo06cPl112GfPnz3/H59tggw2YMmUKY8aMAWDmzJnMmzePXXfdlZ/85CfMnTsXgMcee4xXXnmF9dZbj0mTJr1lH2ussQbXXXcdn/vc53j44Ydr/b6ZybPPPsuaa65Z63GdYXcOSZKkLtKZKekWtdmzZzNs2LAFU9wdcsghfP3rX3/bdmeeeSZ33nknLS0tbLTRRuy+++706dOHvn37sskmm3DooYdy9NFH8+lPf5prrrmGHXbYgWWWWeYdn3vJJZfkqquu4thjj2X27Nn079+f22+/nSOOOIJJkyYxfPhwMpPBgwdzww03MHDgQD70oQ/x+OOPs8466yzYz/rrr8/ll1/O/vvvz80339zp333cuHFsueWW9O276CNvdNQnprsZMWJEtnZalyRJbZwysIH7ntG4ffcSEyZMYMMNN2x2GYuV66+/nnHjxvEf//Ef//S+vvKVr7DXXnux4447vu2+jl6biBiXmSM6s29boiVJktRt7LPPPkybNm2R7GvIkCEdBuhFwT7RkiRJ6laOOOKIRbKfRbVoS0cM0ZIkSQ20OHSd7W0WxWtiiJYkSWqQfv36MW3aNIN0N5KZTJs2jX79+v1T+7FPtCRJUoOsvvrqTJ48malTpza7FLXRr1+/DheTqcMQLUmS1CBLLLEEa621VrPLUAPYnUOSJEmqyRAtSZIk1WSIliRJkmpqaIiOiK9FxMMR8ZeIuCIi+kXEWhFxX0RMjIirImLJRtYgSZIkLWoNC9ERsRpwHDAiM4cALcCBwA+AMzJzXeAl4PBG1SBJkiQ1QqO7c/QF+kdEX2Bp4Bng48Co6v5LgL0bXIMkSZK0SDUsRGfm08BpwN8p4XkGMA6Ynpnzqs0mA6s1qgZJkiSpERrZnWMF4FPAWsCqwDLA7h1s2uESPhHxhYgYGxFjnaBckiRJ3Ukju3PsBDyZmVMzcy5wHbA1sHzVvQNgdWBKRw/OzAsyc0Rmjhg8eHADy5QkSZLqaWSI/juwZUQsHREB7Ag8AtwJ7FdtMxK4sYE1SJIkSYtcI/tE30cZQHg/8FD1XBcAJwBfj4jHgUHARY2qQZIkSWqEvu++yXuXmd8BvtPu5r8BmzfyeSVJkqRGcsVCSZIkqSZDtCRJklSTIVqSJEmqyRAtSZIk1WSIliRJkmoyREuSJEk1GaIlSZKkmgzRkiRJUk2GaEmSJKkmQ7QkSZJUkyFakiRJqskQLUmSJNVkiJYkSZJqMkRLkiRJNRmiJUmSpJoM0ZIkSVJNhmhJkiSpJkO0JEmSVJMhWpIkSarJEC1JkiTVZIiWJEmSajJES5IkSTUZoiVJkqSaDNGSJElSTYZoSZIkqSZDtCRJklSTIVqSJEmqyRAtSZIk1WSIliRJkmoyREuSJEk1GaIlSZKkmgzRkiRJUk2GaEmSJKkmQ7QkSZJUkyFakiRJqskQLUmSJNVkiJYkSZJqMkRLkiRJNRmiJUmSpJoM0ZIkSVJNhmhJkiSpJkO0JEmSVJMhWpIkSarJEC1JkiTVZIiWJEmSajJES5IkSTUZoiVJkqSaDNGSJElSTYZoSZIkqSZDtCRJklSTIVqSJEmqyRAtSZIk1WSIliRJkmoyREuSJEk1GaIlSZKkmgzRkiRJUk2GaEmSJKkmQ7QkSZJUkyFakiRJqskQLUmSJNVkiJYkSZJqMkRLkiRJNRmiJUmSpJoM0ZIkSVJNhmhJkiSpJkO0JEmSVJMhWpIkSarJEC1JkiTVZIiWJEmSajJES5IkSTUZoiVJkqSaGhqiI2L5iBgVEY9GxISI2CoiVoyI2yJiYvXvCo2sQZIkSVrUGt0S/WPg15m5AbAJMAE4EbgjM9cF7qiuS5IkSYuNhoXoiFgO2A64CCAzX8/M6cCngEuqzS4B9m5UDZIkSVIjNLIlem1gKvA/EfFARFwYEcsAK2fmMwDVvyt19OCI+EJEjI2IsVOnTm1gmZIkSVI9jQzRfYHhwE8yc1PgFWp03cjMCzJzRGaOGDx4cKNqlCRJkmprZIieDEzOzPuq66Moofq5iFgFoPr3+QbWIEmSJC1yDQvRmfks8I+IWL+6aUfgEeAmYGR120jgxkbVIEmSJDVC3wbv/1jg8ohYEvgb8HlKcL86Ig4H/g7s3+AaJEmSpEWqoSE6M8cDIzq4a8dGPq8kSZLUSK5YKEmSJNVkiJYkSZJqMkRLkiRJNRmiJUmSpJoM0ZIkSVJNhmhJkiSpJkO0JEmSVJMhWpIkSarJEC1JkiTVZIiWJEmSajJES5IkSTUZoiVJkqSaDNGSJElSTYZoSZIkqSZDtCRJklSTIVqSJEmqyRAtSZIk1WSIliRJkmoyREuSJEk1GaIlSZKkmgzRkiRJUk2GaEmSJKkmQ7QkSZJUkyFakiRJqskQLUmSJNVkiJYkSZJqMkRLkiRJNRmiJUmSpJoM0ZIkSVJNhmhJkiSpJkO0JEmSVJMhWpIkSaqp0yE6ItaIiJ2qy/0jYkDjypIkSZK6r06F6Ig4EhgFnF/dtDpwQ6OKkiRJkrqzzrZEfxnYBngZIDMnAis1qihJkiSpO+tsiH4tM19vvRIRfYFsTEmSJElS99bZEH13RJwE9I+InYFrgJsbV5YkSZLUfXU2RJ8ITAUeAr4I3Ap8u1FFSZIkSd1Z385slJlvAD+rfiRJkqRe7R1DdEQ8xDv0fc7MjRd5RZIkSVI3924t0Xt0SRWSJEnSYuQdQ3RmPtVVhUiSJEmLi84utrJlRIyJiFkR8XpEzI+IlxtdnCRJktQddXZ2jnOAg4CJQH/gCODsRhUlSZIkdWedmp0DIDMfj4iWzJwP/E9E/L6BdUmSJEndVmdD9KsRsSQwPiL+G3gGWKZxZUmSJEndV2e7cxxSbXsM8ArwAeDTjSpKkiRJ6s462xL9AvB6Zs4BvhsRLcBSjStLkiRJ6r462xJ9B7B0m+v9gdsXfTmSJElS99fZEN0vM2e1XqkuL/0O20uSJEk9VmdD9CsRMbz1SkSMAGY3piRJkiSpe+tsn+ivAtdExBQggVWBAxpWlSRJktSNvWNLdERsFhHvz8wxwAbAVcA84NfAk11QnyRJktTtvFt3jvOB16vLWwEnAecCLwEXNLAuSZIkqdt6t+4cLZn5YnX5AOCCzLwWuDYixje2NEmSJKl7ereW6JaIaA3aOwK/aXNfp5cMlyRJknqSdwvCVwB3R8QLlNk47gGIiHWAGQ2uTZIkSeqW3jFEZ+b3I+IOYBVgdGZmdVcf4NhGFydJkiR1R+/aJSMz/9jBbY81phxJkiSp++vsYiuSJEmSKoZoSZIkqSZDtCRJklSTIVqSJEmqyRAtSZIk1WSIliRJkmoyREuSJEk1GaIlSZKkmgzRkiRJUk2GaEmSJKkmQ7QkSZJUU8NDdES0RMQDEXFLdX2tiLgvIiZGxFURsWSja5AkSZIWpa5oif4KMKHN9R8AZ2TmusBLwOFdUIMkSZK0yDQ0REfE6sAngQur6wF8HBhVbXIJsHcja5AkSZIWtUa3RJ8JfBN4o7o+CJiemfOq65OB1RpcgyRJkrRINSxER8QewPOZOa7tzR1smgt5/BciYmxEjJ06dWpDapQkSZLei0a2RG8D7BURk4ArKd04zgSWj4i+1TarA1M6enBmXpCZIzJzxODBgxtYpiRJklRPw0J0Zn4rM1fPzDWBA4HfZObBwJ3AftVmI4EbG1WDJEmS1AjNmCf6BODrEfE4pY/0RU2oQZIkSXrP+r77Jv+8zLwLuKu6/Ddg8654XknqUU4Z2MB9z2jcviWpB3LFQkmSJKkmQ7QkSZJUkyFakiRJqskQLUmSJNVkiJYkSZJqMkRLkiRJNRmiJUmSpJoM0ZIkSVJNhmhJkiSpJkO0JEmSVJMhWpIkSarJEC1JkiTVZIiWJEmSajJES5IkSTUZoiVJkqSaDNGSJElSTYZoSZIkqSZDtCRJklSTIVqSJEmqyRAtSZIk1WSIliRJkmoyREuSJEk1GaIlSZKkmgzRkiRJUk2GaEmSJKkmQ7QkSZJUkyFakiRJqskQLUmSJNVkiJYkSZJqMkRLkiRJNRmiJUmSpJoM0ZIkSVJNhmhJkiSpJkO0JEmSVJMhWpIkSarJEC1JkiTVZIiWJEmSajJES5IkSTUZoiVJkqSa+ja7AEkLccrABu13RmP2K0nqPhr1GQJ+jlRsiZYkSZJqMkRLkiRJNRmiJUmSpJoM0ZIkSVJNhmhJkiSpJkO0JEmSVJMhWpIkSarJEC391bZ5AAAgAElEQVRJkiTVZIiWJEmSajJES5IkSTUZoiVJkqSaDNGSJElSTYZoSZIkqSZDtCRJklSTIVqSJEmqyRAtSZIk1WSIliRJkmoyREuSJEk1GaIlSZKkmgzRkiRJUk2GaEmSJKkmQ7QkSZJUkyFakiRJqskQLUmSJNVkiJYkSZJqMkRLkiRJNRmiJUmSpJoM0ZIkSVJNhmhJkiSpJkO0JEmSVJMhWpIkSaqpYSE6Ij4QEXdGxISIeDgivlLdvmJE3BYRE6t/V2hUDZIkSVIjNLIleh7wjczcENgS+HJEbAScCNyRmesCd1TXJUmSpMVGw0J0Zj6TmfdXl2cCE4DVgE8Bl1SbXQLs3agaJEmSpEbokj7REbEmsClwH7ByZj4DJWgDK3VFDZIkSdKi0vAQHRHLAtcCX83Ml2s87gsRMTYixk6dOrVxBUqSJEk1NTRER8QSlAB9eWZeV938XESsUt2/CvB8R4/NzAsyc0Rmjhg8eHAjy5QkSZJqaeTsHAFcBEzIzNPb3HUTMLK6PBK4sVE1SJIkSY3Qt4H73gY4BHgoIsZXt50EnApcHRGHA38H9m9gDZIkSdIi17AQnZm/A2Ihd+/YqOeVJEmSGs0VCyVJkqSaDNGSJElSTYZoSZIkqSZDtCRJklSTIVqSJEmqyRAtSZIk1WSIliRJkmpq5GIr6qxTBjZovzMas19JkqRezpZoSZIkqSZDtCRJklSTIVqSJEmqyRAtSZIk1WSIliRJkmoyREuSJEk1GaIlSZKkmgzRkiRJUk2GaEmSJKkmQ7QkSZJUkyFakiRJqskQLUmSJNVkiJYkSZJqMkRLkiRJNRmiJUmSpJoM0ZIkSVJNhmhJkiSpJkO0JEmSVJMhWpIkSarJEC1JkiTVZIiWJEmSajJES5IkSTUZoiVJkqSaDNGSJElSTYZoSZIkqSZDtCRJklSTIVqSJEmqyRAtSZIk1WSIliRJkmoyREuSJEk1GaIlSZKkmgzRkiRJUk2GaEmSJKkmQ7QkSZJUkyFakiRJqskQLUmSJNVkiJYkSZJqMkRLkiRJNRmiJUmSpJoM0ZIkSVJNhmhJkiSpJkO0JEmSVJMhWpIkSarJEC1JkiTVZIiWJEmSajJES5IkSTUZoiVJkqSaDNGSJElSTX2bXcDiYs0Tf9WwfU/q17BdS5IkqQFsiZYkSZJqsiVa+id4hkIdadRx4TGxePO4UEc8LhZftkRLkiRJNRmiJUmSpJoM0ZIkSVJNhmhJkiSpJkO0JEmSVJMhWpIkSarJEC1JkiTVZIiWJEmSajJES5IkSTUZoiVJkqSaDNGSJElSTX2bXYAkSZIWH0MvGdqQ/T408qGG7LdRmtISHRG7RcRfI+LxiDixGTVIkiRJ71WXt0RHRAtwLrAzMBkYExE3ZeYjXV1LT+c3RXXE40JSZ/l+IS1cM7pzbA48npl/A4iIK4FPAYZoSWoSw5Ik1ROZ2bVPGLEfsFtmHlFdPwTYIjOPabfdF4AvVFfXB/7apYV2X+8DXmh2Eep2PC7UEY8LdcTjQu15TLxpjcwc3JkNm9ESHR3c9rYkn5kXABc0vpzFS0SMzcwRza5D3YvHhTricaGOeFyoPY+J96YZAwsnAx9oc311YEoT6pAkSZLek2aE6DHAuhGxVkQsCRwI3NSEOiRJkqT3pMu7c2TmvIg4Bvg/oAX4eWY+3NV1LMbs4qKOeFyoIx4X6ojHhdrzmHgPunxgoSRJkrS4c9lvSZIkqSZDtCRJklSTIVrqpSLifc2uQdLiLyIGR4R5Qr2OB72IiGj7r3q+iGgB7oyIHze7Fi0+fI9QexHRFzgEGNTsWqSuZoju5SKiT745uvT9fkj2Dpk5H/gEsFdEfL/Z9aj7i4hofa+IiN0jYkREbNHsutR0SwN9M3NqRHwkIraqpq9VL9SmUa5P69mJnpwrnJ1DAETEl4A9gQeAVzPTYNWDRURLZs6PiNWBPwC/yMxvNbsudX8RcRywP3ANcCTw+cwc29yq1GwRcSSlRfoZYADwtcz8a3OrUldq/aIdEZ8ADqJMY3xtZl7b5NIaxpboXioiNoyIVarL+1MWvTkSGAqs0cza1DhtWgQ+EBFrZeZkYATwmYj4zyaWpsVARKwL7JaZ2wIrA08A99vy2PtExB4RcVB1eXNg78zcDngICGBiM+tT16sC9FbAfwJXAbcAZ0bEZ5tbWeMYonuhiNiZ0oo0s7ppSeC7wC5AP+DL1XZDmlKgGqZ6k9sbuBT4j4g4B3gN2Ao4KCJ+1NQC1a10MF7iDeAfEXEysAlwUGa+AewdEas1qUx1sYhYD/gx8EhELAU8Bfw+Is4EPgrslZlvVC2S6l3WBu7KzFsy85eUFukfRMSmTa6rIQzRvdNGwH3AnhGxIzADuBo4LDN3ycy5EXEUpXXSFqYepPrw+zqwG/AosCmlP+MUyoffwRGxfk/uw6bOadsHGhgMkJlPVJePycw9MnN2RBwKHAu83pxK1QT9gDuBHYDzKMfER4AhlC9WcyPicODfnQWod6jOUgFMBVaPiL7VmKvfUVqle+Rnin2ie6GIWBO4AlgT+HhmToiI/wbeD/yI8mZ4LHBIZv6lSWWqASLiI8CnKQH6KMpr/EREbJaZYyJiqcx8rblVqtnaDSI8BjgYuB84v9rk65TuHH8E9gIOzcyHmlGrmiMibge2APbIzLsj4kDgXyit0vMoX9QPzMyHm1imGqhNH+j1gDOB32Xmf0bE1cArwNnA8sBPKMfCA00styEM0b1Euw/FtYGLgH8AY4GfAQOBzwIfp7RMf98A3XNExPDMvD8ilgYuA9YH9s3MxyJiN+DfKIPFpqRvCqpUXX9GAt+jjJmYBfyaMhj1c8B04P7MfKxpRapLtAlMfYCkfJEaSunic2r1XvJR4IPA+4BbM/Px5lWsrhARe1HeG2YDKwG3ZOZpEXE6ZYDpesAPMvPWJpbZMIboXqBdgF4+M6dHRD/KG+DhwCTgjMx8rerfNj8z5zWvYi0KbT701qGcen0kM3etBnlsT/kS9VfgX4ETMvOW5lWr7iYiNgQuB67JzP+KiIHA/wOWBW4A7qn6Q6uHa/cZMhR4JTP/Vl0/m9Kd4+Squ496iYhYDrgV+HJmPlh9ifoS8KfM/HG1zUqZ+Xy77mE9hn2ie7h2b35HA5dGxLeBHTJzDKWv0qrAd1pP5Ruge4YqQO9B6aJzBrBaRNySmb8ALgH6A8MoU1HdYj/o3q2D1/9Z4GbgwIj4aGbOAE6ltDzuRukXq16gzWfINyin6C+KiLMjYoXMPJYyrd2Z1Rf2Hj0vsN5iCcrEBH2r6w8Af6aMrfkmQGY+X/3b4wI0vPmLqweKiL6tgTgijqBMY/dF4Bxgu4h4f2b+TzV4cEdKC5P9YXuIKCuJHQZckZlXAqdHxG8i4vrM3Ae4p20f6J76Jqd31+7L9s6Ufox/Ac4FJgPfqDa5NyL+DVg6M19tXsXqChGxPDAnM+dExGeAT2bm9hHxQ0r3vzci4l8z82sRcSrwKvhe0lO1Obu5OvBcZk6LiMuAf4uIEzLz0Yj4M2V81QYRsXbrGYueypboHioiPgYcGxFrVF03lgP2BnaqNrmM0sJ0aGb+H3BKZk5rUrlqgOoL1LO8ddaErwFbRsRV1TZ+aerF2rcYRsSXKWcttqOcrdid0v/5NuB7EbFFZr6SmVO7vFh1qWqsxIXAHhHRn/Kl6ogoC3NtSBlUuDNwYUQMzswTq1l+1EO1WUjlFuB/I2Jf4HbgDuBX1Vnu8yizfS1NL1gK3hDdA0XE7pTBgi8AK2XmHMqbYX9gl8zcEbiScjp2u4gYaKvS4q81EEXERhGxakQsQRkE9tN4c87vfpTWxRWrQWPq3TaEBR+Oq1JWLf1EdYr+O5S54wcDF1PeM55uUp3qQlU3sNOBnwO/yszZmflnyjiKzYEfZ+bfgWspnyv2je8FImIEZRDh5ygzfO1G+TJ1CaUv9N8p7yFvUAavP9ucSruO3Tl6mCos/Rg4PDPvab09M1+OiJWAdSNiLcqgwqcpA8pmNKdaLSrx5jLeO1LOMvwOeJ4yaPCrwHURcRvlDe6TlDBtv8VeqvrC1QJ8PyKOyMxpmTklImYBH42IqzLzfyNifeBLmXlnRFzoQMKerTouBgPfAI7KzN+2ua+lmv95AnBcRGxNCdRf9CxmzxcRK1JmZBlUfaH6c0S8SpnRayngysycEW+uWPj5zPxH8yruGrZE9zzvp8zVeE/7U7XVdEMXU1qUvkuZlsjTsoux6jQrVYDemnIafk/KlHWTKafmRwO7UlYp3B5YkRKknb+194qqu8+ngY0j4tLq9ruBDSjhCEpL0ktVgDJA93BVX+aXKa/7IxHRUk1pR2bOrza7j9ICvTHw9cyc1Ixa1eVmUfLDMm0GDV4B/BbYmjKdHcAU4DOZOb4ZRXY1p7jrYSJic+BE4ABgXrt5PXcF7qGMps3MnN68SvXPiogNKKfWflS1Iv4JWB1Yo2ox2gD4FDAc+K/MHB9lVamzKWcgHmxa8WqadoMI16fMrPAgZTq7fwX+g3Iqtg9lCd/PVS1P6gUiYhClD/y/tU572eZM10Bg18y8OiKWyMy5TS1WDRNltcE3ImJbSkB+PTNvr852fhG4LzN/VG27SmY+08x6m8WW6J7nJWANYPsqQEdmvlF9aG4CfAaYboBevEVZIeqXwKNtBvNsTVly9ecAmfkoZQDIeN7sszgZ+BcDdO/ULkAfSpnichZlldIDgH/PzJMpp20vBPY0QPce1fExjXIG68sRsU11V+v7x0HApyKivwG6Z2pzdvONahDhBZSzl1dExMjMvIOyAuHHI+KE6mE9vu/zwtgnuofJzIkRcRZwVZRlWP8AzIyywMZI4FNOP7R4q1qYrwdOzMwbI6KFMtn9WdXAj/sj4uLMPDQzH46ISZn5CkBmzqasLKVeqE2APpYy/eHywFbV1HVbAL+LiNUy8zDKICH1cG2mLWvb/W80ZVn370bEecC4asanLwEHVe8j6mGqM1P/FhFfowwYPRnYC9iIcsbq3IhYLjPPrj53XoTePaWhIboHaX0zzMxLIiKBU4CXI2IasCmlBXJiU4vUorA9ZWnd/62u3wo8ClB14xgOPBoRV2bmga0BWgKoWpf+BdgGOA5YBiAzX6xaHm+JiFWAZ3vzh2Nv0PbMBLB660CwzHwuIi6mnLk6HniMsqTzZzPzkaYUq4aqAvTlwJlZVhhcknLm4f3AdzNz4yhLfN8QEXMz86fNrLe7MEQvpqoZNmZm5gttwnO29l3LzEsj4i7K/NDLAP9wDs+eITN/GmXu7z9GxGvArZn5vTb3z626e2zZtCLVbbQLSgCPA/tn5qsRMZjSZ350NeXhZOCjhufeoc2Zic9R1hXYFphbfYa8AFwZEf9LGWy4bGbObGK5apDq8+J24H+zrGhLZr4O/D3KMu93VZu+TJk+98lm1Nkd2Sd6MRQR+1D6Ka0XZVXC1jfCZavBH62jqf+emX/JzPsM0D1LZp5JmcpufcocnQBExDYRcQmwXGbe26z61HxR9Gnz/vCpKAtoLJeZrX0Y/0bp7rUT8G3gRQN07xIRu1DGyuydZU2B9q//y9UxMavLi1PDVS3QVwG/AlaLiP1b+0VX5gKrRlml8nzggsz8v/azf/VWtkQvZiJiNcr0ZV/IzDFtbt8d+EhE/FfTitMiFxHLLKw7RmaeUb2RXV+doh9AGfBxUma+1JV1qltaJjNnwYI+0J+ltCJdFhEHZebtlFk5rqX0fz40e/gSvXrb4NIWYBVK155PAD+rBpQt2Kb9v+o5IqIvZRXjM6qz1/tSunhlRNycma9l5uiIWIrSnef2zBwHHg+tDNGLn37APOCh1iloqttbKFMWLmiJ1uKtCshHRsTl2WY+77ave2aeHhFvAA8Ar1EWxvh1B6fw1YtUXTMOqz4Uh1H6QO8IHEXpsnFLdUbrD8BTlL6ujzWrXnWNdgH6g5TW5Usps28cFBHPZ+aNrQMNfQ/p2TJzXjUIvXXg+XXVeKrjACKidbXKm1sf43HxVoboxUxmPhERv6P0a5weEWMo/Z77ADtExBrA5Ij4Xr45Ob4WT30p3/5fqM5ALJmZT2a7RS8y88yqRemxzPx1dZtvcr1UlLl8Pw+cCawLTAf2AfagTFm3aUScQjl9uynwMWdb6B3aBOhvAttSZmC4qfqZD3w+IpbKzKt9D+kdWgN0a+NMZl5f9dQ4GlgiIq7LzNfabO9x0YYhejHSZgDh1yLiPuBjlNP3gynTliWllekiA/Tirxog+F/ARynztj4REctQlnR/rt22rZPe20qg14HngC8DA4EDMnNaRLyPMpMLlC/hlwBzDNC9S0R8EtgxM3eNiGuBLbNMj/kiZfnmT0fErcArvpf0Hm278VRBegngWOBOevE80O/G0/7dXEQs13q5OsXW+po9QenwPyHL5OfLUE7JnZm9YL36niwi1qtOx0NZOOc/Kf0Vb6KsIDenzbYtbR/rh56qUPwg5Uv2uCpAB+XU/dCIOB/4GnByZv61iaWqC3TQvW8ucF1EnEj53Ph8dfv7KF07jszMWb6X9EytAwLbDgxsvdzajae6fDWwX5tByOqAy353Y9Wo2Z0ogz1eb3ffEsDNlH6wM4AhlIFBri62GIuIlYE7gOMy8zcR8X7Kqfg3KB92B2XmkxGxbWbe08xa1X20PwMRERsBywLfBe4BTqU0mnwSWBO4LZ3vt8dr1wd6f+AVYCZlafdXKYtvvR5lcY3tKWct5ixsf+oZImIPyjiJR4GbM/OhdsfKggV4/DL1zgzR3VQ1GnZAdXUlYEBm3lfd17caELAksCsQwEOZ6dyNi7mI+AhlqrEzgT2BGymzsSwP7JWZz0RZOex0SiuBr7kWiIjPU75QP0I5c7E8ZVqqX1NG4LtUcy/RLhR9kdL176rMPCjKKoSvAX+hdOE4ivIF/eGmFawuEWVO6IuAUZTxVNsCJ2TmA4bm+uzO0Q1FxIcofWBXzjLh/ZeAfaOsRNc6orZvZr6emTdn5k2GqZ6hmj5oEGXZ3V9Xrc1XVXfvFhHHAecC3/E1V1sRcRTlbMVtwFeBz2dZofRLwAHA0c7t2nu0CdDHUFae+yjwfHX3t4CJwDrAh4EDDdA9U0QMioi1q8ubARcCF2fmj4GzgVuAUyNihAG6PkN097QM8BLwhYhYHTiNMnJ636qlksyc18T61ADVnJ0A9wH3Al+OiKUz80KqL1WU5b6/kpm3GIh6tw5e/w8Be1OW6X0GOD0ilqz6PR8I3OCHZM/Xps9rn2og8hDgMOB+ygxOgzNzBuU0/rcoXcfs2tMDVTP1fBmYVx0XjwBLUN4nyMzplAHGtwOnRcRyfq7UY3eObqTd6behwKcpgz3+mzLzxpcpp+Bube3aocVfm/5nKwOz2kw5dA3ldNtebacYktq9V3ye0u3naEo/xymZuVt139HA05l5Y9OKVZdpd1wMysxpbe4bDFyembtExMHAbpR55V2JsAeKiA0pX54vpszY8yXgHEqf+Nsog46PrbYdCKyQmZOaUuxizJbobqJ9X6TMfIjSl/El4JvVzecAKwI7VX2m1QNUAXovSh/WURFxRnX7/sCLwOiIWBo6bH1UL9QmKO0JjKTM93s3ZeXBa6r7PkMJ1hOaVKa6SFTaHBdfBn4RET+IiMMAsizY9Hj1/vJV4L8N0D1T1e/5UuDxqtvfMpSZnY6ivFfsAmwcERcBZOYMA/R7Y0t0N1ONkl4XWI3yRtcCHEwJz2dQpieam5nPL3Qn6vaq0+yvV5d3oAwU/ASlJfFHwE8z85jq/muBU7PNMu/qndoFpbWA64ELM/OciFgB2Jcy2Hh5ylmMIzLzL00rWF2i6vb1anX5COAQ4HDgB5TZWK7NzP+MiNHAlsBHqv7y6mGqWb1GA09l5nZtbl8HOBGYApxFOat9O3CY/eHfO0N0NxIRh1NOv+xL6Rd7V2YeHREfBg6ldOk4yf7Qi7fqTe4bwLXAH4ENKFPYrUQZ8HNMdd+9mfm5ZtWp7qVdgD6C8oV6COW0/MGZ+eeqX30fSv/5WZn5UtMKVpeIiE8AR1AaW5YA9geuAz5LmdLwdODfKWc2rwNWycxHm1OtGiki1gWuAK6mDCSdmJnfaHf/N4CXgR8C07LdCriqx+4c3cvKlNOvRwKTgK9GtZwzZRTtDw3Qi7dq/t5RwMP8//buPNrOqrzj+PcXCEmYAnZRBGWwRW0Aa5jiuFiKYRIRKaVAhVQQEEqIGECCtpRSMBA0KCwxhEkKEgpIUVDGNDIIFGQIIBKDDIUoFMRAaIZm+PWPvU88vYtccm5u7rnc8/uslZV73vPmfffNPeue5+z97OeBmXUZ7T+BhylvfufafgS4FPh4nT2IaE7h2ItS/vAW4AzgcuCfJH3A9pJatef5BNADn6Q9KCUwp9heYPt1Sg7sUMqS/UG2bwVepkzQOAH0wKTSVOdgYLLtScCXgZGSvtU4p64+nEPZa7VhAuhVl7bfbVJnlzeh/LJ7oQZO61DymH4DfK4WwT8eGGz7zPaNNnqDSvfJ8yj1ei9pOj6oli2cRQmc1wJGUupAP9Wm4UY/JGlb4EvAf7l2EpM0jVK9Z7KkcbaTA90BJI2k7KPYy/ZtkrakpIRdQnlvXxvYXNKewO+BE2qQHQOQS9vuia7Nclyacn0RuEjSZNvj6/FZksY20n9i1WQmug3q8ttVlOobJwKTJB1NqcKxMWVWck1JYyh1X69v11ijVy0A5lBSNZa37G6aDfhVff4Y4DLbD7VjkNF/vMlG0peBuymbgvYGsP08ZXXjBsrO++gMiyg/91G1t8CVwP/aXlhfE3cCpwInUGYnX2nbSKNPuEu3ybpZ8HBga5UGO43jCaB7SXKi+1hdij0FONH2nbW0zHbUdA3KDvtLgecomwu/kqT/gUHSBpQWzBNs/6QeG0TJdV8f2NH2dEnr2Z7XtWJLdI4aPKvxAUvSPpSZxReBBykbx7al1Pr9aT1nzaR7dY76Gtmasmx/EPCPtr/d/Dqom02X2M6HqwHsrd4rVJqtXEIpaZiVql6UdI4+VOsAfxe42vadUErLAD+TdBxlVvp6YB/KrOU69fkYAGzPlXQesJ+kOTWFR3UZ7pOUZjr3A2/U8xNAd651GuXHVFo2H0vJfT4DOJ3SxhvgYElLbN+aALpz1BSwZZKeoOS4DgE2kbRGTQ0bbHtx8uIHtqbgeQiwcEXn2X5a0h5dZ6pj1SWdo2+9Tqm+sGWt4drsMUp1hh1tz6sbhBJADzz/Tukmd5SkXYBlkj4GfAOYVn/2CZ47mKTdgfMkrVcbZOwLHGz7rPr1ocAoygayGcCj7Rpr9B1J2zel8CyrgbSBJympgOsDjZnoxe0ca/SN2mNgd+BKSeNq9Y0VnZsAejVIEN2HbC+g5C3+G3CQpAObnvtvSi50lt0GsNrw4FxKdY7vAldQ6kJ/zfZNaabS2eob4lnAhfUD1cvAM8B7JA21PROYCPyNS2fLSxsbDGPgqqULtwbGryCQfoKSErgBkE3oA1x9PSBpFKX2883AzsAYSR9q59g6TdI5+pjtNyQ1lmIPrcsx0yQdAuwAvNDG4UUfsP0SZabxakp96CG2X0gOdGeTtBtl0+lptu9peuoFSrmy2cDjwHBgUWPpvu9HGn2p/l5YIukaYD5weD3246ZAepmkX1HSfea2d8SxukjarJavXFKrsZxDWcGcKmk6pbX3XvV3wz3dXSt6RzYWtomkdShNEg6g5DJtBRzpdBeL6Di1DNlESnrGnwHfA2bYXlSf/w6ltusw4N2UToRJ4xjgujTYOYTSwXYRpR7wFNs31OcGpebvwFabdN0A7Gf7MUnrAudTyqF+1vazNbD+KvAapcttUkJXswTRbVQD6X2AkygdxxJAR3QYSWsDxwF32r5b0pGU9u+T6rGF9bwRwIbA87WEWXQISbtSNpceQgmi96NU5Jhi+8Z2ji1WvxpAX0ZJAbyZ0tZ7e0o2wWmUD95ftf2cpPcAQ1OFo28kiF4NVLrSLbH965U4dyilmUpyoSM6VM13Xtj0+AhKIH02cEdjRjo6j6TtKbOL820fVo9tAOxJ6XB7hu2bu7lEvI3VAPpG4Ie2J9RjN1E+UH+EUvryZMqM9NhaGzr6SDYW9rK6LHstsGldbulWLYyfADqigzXNNg+qjy8Erga+AoxuNOaJge9NNhfPoWw637g26sL2XErb98Ym5RiA6oTcFcCzwFxJnwCwvSfwPPBA3WA8kfI62LA9I+1cmYnuRfUF/j3gWNu3v8nza9hemvy1iFiRLnmwxwK7UNK90mVsgOvys/8c8Cplo+AvgeOBTYBbGjPP2Yw8cEkaBvwUuIgyE308sBZwk+076jnTKDPQW9PUnCn6ToLoXiRpPGXJbYqkPwFGUPKW5tu+qJ7zYeDdtq9t41Ajok1WFPg0f7juEkxtUGceo0NI+jJl0/m1wN6UtJ5bKCsT76c07LqtfSOMviDpnY0SljWt4/PAYMoHqZ/V49cB37L987YNtIOlxF0vkLS+7deB3wMnSppF+WW3iFK3c4mknWx/CdgYyIs9ogN1CY6PpFTa+AOlTNWLjUC6NlGQiwTQA1zdODjX9gOSPgJ8Gvg4pWTdIEpO9JrAdyhlzFKZpQM0BdCDbM+SdDllc+nourI93fZftXeUnS050atIpSf9VXWG+WrgKkqe2rOULnS7U4qhG8D2j2z/rj2jjYh2agqgjwMOBO6jVOg5T9IWjbq/zedGR/g7SglDKB1NDwP+Fvgo5T3kPsr7yh62z6215qNDNFaobM8G/pUyG727pHe0dWCRIHpV1B31TwO/oMwUbGP7dOATtsfZfri++D8GbCFp7XSki+hskjajlKTak5LLuAB4GpgsafPkNXaW+p6wIbAugO1nbc8BNgLOrZtOX6JsMMsMdIez/RQlT/pC26+2ezydLkF0D9Vd0mdL2kGvvDgAAAXISURBVMj2KcAjwKmSdqR2jJI0XNJRwOHA8bbnZ3YpojM1fYB+kbJMvwNlFvqzlCYKI4CzGi19Y2CTtIukY+p7wivAvHq8UYllKHCypNOAI4ALbD/XntFGf2J7dp2VjjZLEN0Dkj5DKSkznbJ7GtunAfcCpwLb1fJ2O1EK4o+x/UR7RhsR7SLpU5KOhpKeUfMYF9fl+LWAx20vBjYDrgPGO628O8U84FxJB1MmYV4HsL20/j0RuICS3rF/GuxE9D+pztEiSe8EplG6Az0gaS3KjMEQ2y9LGgvsCpwJPAQMy8agiM4kaSdKPuvRtqfWY6oB9aaU7mMPAaOB0bafbN9oo6/VlctbKOkctwPzKRMza1KC6oeAyxqBdUT0L1k2bN0iYDGwsHYbnEDZRT1M0mPAWMoGkXHAoQmgIzpX/aA9Cri97rCfQomjB9v+raRjgKXA12sebHQQ27+QtDNlVXMJ8A/A+yg58wLuTQAd0X9lJrpFNa9xPLAbsA1l9uBuoBFAX2771por/XL7RhoR/UWdcbyNEiyfX4+NpVReGGP7D+0cX7SXpA8CdwDH2P5Bu8cTESsnM9EtqsuwFwD3UPIYf2R7ESyv+7ppPS8BdEQAy2ccdwVuk/QSZUXreGDfBNBhe6ak0cD9kobYvqTdY4qIt5aZ6F4iaX/gJOAA279p93giov+pM9L3AwuBD9tOybJYTtJ2lA63s9o9loh4awmiV5GkTSjtWY+gBNCPt3lIEdGPSRoBLEugFBHx9pYgehVJGgbsAsyqRdAjIiIiYoBLEB0RERER0aI0W4mIiIiIaFGC6IiIiIiIFiWIjoiIiIhoUYLoiIiIiIgWJYiOiOghSUslPSLpcUk3SNqgh9c5TtLavT2+Fdzra90896ykHzY9/mtJ3++LcUVEvN0kiI6I6LkFtkfa3hZ4FTimh9c5DmgpiJbU046zKwyiqx0lbdPDa0dEdIwE0RERveNe4F2NB5JOlPSApEcl/XM9to6kn0iaWWevD5A0DtgUmCFpRj3vjabrLJ8NlvR9SZPreWdJGiXpHkkP17/fX8/7gqTrJN0sabakSfX4mcCwOnv+gxV8H9/kTQLtt7jX9XUm/hlJYyWNr+fdJ+kd9bw/r+N5UNJdkv5i1f67IyLaq6czGRERUUlaA/gUcHF9vBvwXmAUIODHknYGNgJ+a3uvet5w269JGg980vYrK3G79wGjbS+VtD6ws+0lkkYD3wD2q+eNBLYDFgGzJJ1ne4KksbZHdnP9q4G/l7RVl+NPdnOvbeu9hgJPASfZ3k7SOcAY4NvAVOAo27MlfQg4n9KoKiLibSlBdEREzw2T9AiwJfAgcFs9vlv983B9vC4lqL4L+Kaks4Abbd/Vg3teY3tp/Xo4cJmk9wIGBjedN932awCSngC2AJ5fiesvBc4GTgZuajre3b1m2J4HzJP0GnBDPf4Y8JeS1gU+ClwjqfFvhqzMNxsR0V8lnSMioucW1FndLYC1+GNOtICJNV96pO2tbF9s+9fADpTgcqKkU1Zw3eZWskO7PPc/TV//CyWA3RbYu8u5i5q+XkprkyaXAzsDm/fgXsuaHi+r9x0EzG36/xhpe0QL44mI6HcSREdErKI64zsOOEHSYOAW4LA6A4ukd0n6U0mbAvNtX0HJPd6+XmIesF7TJV+SNELSIGDfbm49HJhTv/7CSg53cR1jd9/PYuAcyobHVblX43qvA89I2h9AxQdbuUZERH+TIDoiohfYfhiYCRxo+1bgSuBeSY8B11KC5A8A99cUkK8Dp9d/PhW4qbGxEJgA3Aj8B/C7bm47iTKj/XNgjZUc6lTg0W42FjZczP+fve7JvZp9HviipJnAL4F9enCNiIh+Q7bf+qyIiIiIiFguM9ERERERES1KEB0RERER0aIE0RERERERLUoQHRERERHRogTREREREREtShAdEREREdGiBNERERERES1KEB0RERER0aL/A1vftNPmzJ7WAAAAAElFTkSuQmCC
+<img src="data:image/png;base64,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
 "
 >
 </div>
@@ -12986,7 +13653,8 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h3 id="Observation:">Observation:<a class="anchor-link" href="#Observation:">&#182;</a></h3><p>In the above bar graph among top five restaurants, 'Karl Fazer Cafe' has the highest review counts where as 'SIS. Deli and Cafe ' has lowest. 'Piritta' restaurant seams little far away from the centre (Kaivokatu 1, 00101 Helsinki). Rating is almost same to every restaurants i.e. equal to or higher than 4.</p>
+<h3 id="Observation:">Observation:<a class="anchor-link" href="#Observation:">&#182;</a></h3><p>After observing the above graph, it shows that the model have better prediction in 0 meter radius, but of course this is not realistic result since the training data have more information of test instance in radius 0 meter. The closer the datapoints of the spatial dataset, they have similar properties which makes leakeage of informaiton ( of test instace) if we don't exclude the closer data points from training dataset.</p>
+<p>As we keep increasing  the dead zone radius, the prediction  result goes on decreasing. And, my laptaop took more than 7 hours to compute this dataset. Laptop is MacBook Pro (Retina, 13-inch, Mid 2014) with processor of 2,6 GHz Intel Core i5 and 8 GB 1600 MHz DDR3. I have implemented knn from scratch in this task.</p>
 
 </div>
 </div>
