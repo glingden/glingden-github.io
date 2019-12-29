@@ -821,6 +821,7 @@ a:hover {
   overflow: hidden;
   background-color: #0078ff;
   border-radius: 4px;
+
 }
 
 
@@ -831,6 +832,7 @@ a:hover {
   font-size: .7rem;
   letter-spacing: .1px;
   margin-bottom: 0;
+  
 }
 
 .card-blog .card-category .category:hover{
