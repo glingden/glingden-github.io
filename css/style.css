@@ -3,7 +3,7 @@
 ======================================*/
 
 body {
-	background-color: #b4b2b2;
+	background-color: #878484;
 	color: #313030;
 }
 
@@ -172,11 +172,18 @@ a:hover {
 	content: "";
 	position: absolute;
 	height: 3px;
-	background-color: #9b9c9d;
-	width: 100px;
+	background-color: rgb(159, 159, 160);
+	width: 140px;
 	bottom: -12px;
 }
 
+.tech_stack {
+	display: inline-flex;
+}
+
+.tech_stack span {
+	border-bottom: 3px solid rgb(159, 159, 160);
+}
 /*------/ Box /------*/
 
 .box-pl2 {
@@ -676,7 +683,7 @@ a:hover {
 ======================================*/
 
 .about-mf .box-shadow-full {
-	padding-top: 10rem;
+	padding-top: 5rem;
 	padding-bottom: 4rem;
 	border-radius: 5px;
 }
